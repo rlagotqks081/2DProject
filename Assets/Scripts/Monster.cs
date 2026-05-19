@@ -1,110 +1,105 @@
-﻿using System;
+﻿using UnityEngine;
 using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.UI;
-using static Unity.Collections.AllocatorManager;
 
-public struct SubEffect
+public class Monster : MonoBehaviour, IDamageable
 {
-    public string effectType;
-    public int value;
-}
-public struct MonsterAction
-{
-    public string description;
-    public List<SubEffect> subEffects;
-}
-public class Monster : MonoBehaviour
-{
-    [Header("Identity")]
+    // 나를 태어나게 한 원본 SO (디버깅이나 원본 데이터 확인용)
+    public MonsterData OriginData { get; private set; }
+
+    [Header("[런타임 실시간 스탯]")]
     public string monsterName;
-    public int monsterID;
-
-    [Header("Stats")]
     public int maxHp;
     public int currentHp;
-    public int block;
+    public int currentBlock;
 
-    [Header("Pattern Data")]
-    public List<MonsterAction> patternList = new List<MonsterAction>();
+    [Header("[런타임 AI 패턴]")]
+    private List<MonsterPatternData> runtimePatterns = new List<MonsterPatternData>();
+    private int currentPatternIndex = 0;
 
-    private int currentTurnIndex = 0;
-    public MonsterAction CurrentIntent => patternList[currentTurnIndex];
-
-    public void SetupMonster(int id, string name, int hp, List<MonsterAction> patterns)
+    private void Start()
     {
-        monsterID = id;
-        monsterName = name;
-        maxHp = hp;
-        currentHp = hp;
-        patternList = patterns;
-        currentTurnIndex = 0;
-
-        Sprite monsterSprite = Resources.Load<Sprite>($"Sprites/Monsters/Monster_{monsterID}");
-        if (monsterSprite != null)
+        // 씬에 직접 배치된 경우를 위한 예외 처리
+        if (OriginData != null && currentHp == 0)
         {
-            GetComponent<Image>().sprite = monsterSprite;
+            SetupMonster(OriginData);
         }
-
-        UpdateIntentUI();
     }
 
-    public void UpdateIntentUI()
+    public void SetupMonster(MonsterData data)
     {
-        if (patternList.Count == 0) return;
+        OriginData = data;
 
-        MonsterAction nextAction = CurrentIntent;
+        monsterName = data.monsterName;
+        maxHp = data.maxHp;
+        currentHp = maxHp;
+        currentBlock = 0;
 
+        runtimePatterns = new List<MonsterPatternData>(data.patterns);
+        currentPatternIndex = 0;
 
-    }
-
-    public void ExecuteTurn()
-    {
-        if (currentHp <= 0) return;
-        if (patternList.Count == 0) return;
-
-        MonsterAction action = CurrentIntent;
-
-        currentTurnIndex = (currentTurnIndex + 1) % patternList.Count;
-
-        UpdateIntentUI();
+        Debug.Log($"[Monster] '{monsterName}' 로드 완료. (HP: {maxHp})");
     }
 
     public void TakeDamage(int damage)
     {
-        if (block > 0)
+        int finalDamage = damage;
+        if (finalDamage <= 0) return;
+
+        if (currentBlock > 0)
         {
-            if (damage <= block)
+            if (currentBlock >= finalDamage)
             {
-                block -= damage;
-                damage = 0;
+                currentBlock -= finalDamage;
+                finalDamage = 0;
             }
             else
             {
-                damage -= block;
-                block = 0;
+                finalDamage -= currentBlock;
+                currentBlock = 0;
             }
         }
 
-        if (damage > 0)
+        if (finalDamage > 0)
         {
-            currentHp -= damage;
-
-            if (currentHp <= 0)
-            {
-                currentHp = 0;
-                //게임오버 구현하기
-            }
+            currentHp = Mathf.Max(0, currentHp - finalDamage);
+            Debug.Log($"[{monsterName}] 피격! 남은 체력: {currentHp}/{maxHp}");
         }
-    }
-    public void TakeDirectDamage(int damage)
-    {
-        currentHp -= damage;
 
+        // 3. 사망 체크
         if (currentHp <= 0)
         {
-            currentHp = 0;
-            // 게임오버 구현하기
+            Die();
         }
+    }
+
+    private void Die()
+    {
+        Debug.Log($"[{monsterName}] 사망!");
+
+        // 배틀 매니저의 활성 리스트에서 자신을 제거
+        if (BattleManager.Instance != null)
+        {
+            BattleManager.Instance.activeMonsters.Remove(this);
+        }
+
+        Destroy(gameObject);
+    }
+
+    public void AddBlock(int value)
+    {
+        if (value <= 0) return;
+        currentBlock += value;
+    }
+
+    public MonsterPatternData GetCurrentIntent()
+    {
+        if (runtimePatterns == null || runtimePatterns.Count == 0) return null;
+        return runtimePatterns[currentPatternIndex % runtimePatterns.Count];
+    }
+
+    public void AdvancePattern()
+    {
+        if (runtimePatterns == null || runtimePatterns.Count <= 1) return;
+        currentPatternIndex = (currentPatternIndex + 1) % runtimePatterns.Count;
     }
 }

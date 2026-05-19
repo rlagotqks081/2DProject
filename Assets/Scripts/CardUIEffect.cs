@@ -1,8 +1,9 @@
-﻿using UnityEngine;
+﻿using DG.Tweening;
+using UnityEngine;
 using UnityEngine.EventSystems;
-using DG.Tweening;
-using System.Runtime.CompilerServices;
-public class CardHoverEffect : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
+using UnityEngine.InputSystem.LowLevel;
+
+public class CardUIEffect : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
     [Header("Animation Settings")]
     [SerializeField] private float hoverScale = 1.2f;
@@ -13,6 +14,7 @@ public class CardHoverEffect : MonoBehaviour, IPointerEnterHandler, IPointerExit
     private Vector3 originalScale;
     private Quaternion originalRotation;
     private int originalTransformIndex;
+
     void Start()
     {
         UpdateOriginalPosition();
@@ -21,15 +23,30 @@ public class CardHoverEffect : MonoBehaviour, IPointerEnterHandler, IPointerExit
 
     public void OnPointerEnter(PointerEventData eventData)
     {
+        if (InputManager.Instance != null && InputManager.Instance.currentState == InputState.SelectingTarget)
+            return;
+
         transform.DOKill();
 
         originalTransformIndex = transform.GetSiblingIndex();
-        transform.SetAsLastSibling();
+        transform.SetAsLastSibling(); // UI를 맨 앞으로 보내서 가려지지 않게 처리
 
         transform.DOScale(originalScale * hoverScale, duration).SetEase(Ease.OutCubic);
         transform.DOLocalMoveY(originalPosition.y + hoverMoveY, duration).SetEase(Ease.OutCubic);
     }
+
     public void OnPointerExit(PointerEventData eventData)
+    {
+        if (InputManager.Instance != null && InputManager.Instance.currentState == InputState.SelectingTarget)
+            return;
+
+        ResetToOriginalState();
+    }
+
+    /// <summary>
+    /// 카드를 정상적으로 내려놓거나 취소했을 때, 원래 자리로 부드럽게 되돌리는 안전장치 함수
+    /// </summary>
+    public void ResetToOriginalState()
     {
         transform.DOKill();
 
@@ -44,5 +61,4 @@ public class CardHoverEffect : MonoBehaviour, IPointerEnterHandler, IPointerExit
         originalPosition = transform.localPosition;
         originalRotation = transform.localRotation;
     }
-
 }

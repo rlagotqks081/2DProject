@@ -1,7 +1,7 @@
 ﻿using UnityEditor.Build.Content;
 using UnityEngine;
 
-public class Player : MonoBehaviour
+public class Player : MonoBehaviour, IDamageable
 {
     public static Player Instance { get; private set; }
 
