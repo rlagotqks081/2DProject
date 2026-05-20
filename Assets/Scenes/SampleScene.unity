@@ -482,6 +482,7 @@ Transform:
   - {fileID: 1470917853}
   - {fileID: 1383694490}
   - {fileID: 1338069697}
+  - {fileID: 1341543267}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &410087039
@@ -666,17 +667,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5f96f5d3cfd35ce48b3671448127dcd6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HandCardController
+  handLayoutGroup: {fileID: 0}
+  cardPrefab: {fileID: 0}
   cardSpacing: 150
   arcIntensity: -5
   rotationIntensity: 5
-  cards:
-  - {fileID: 1562067891}
-  - {fileID: 763263201}
-  - {fileID: 1959740670}
-  - {fileID: 1126864964}
-  - {fileID: 1950838485}
-  - {fileID: 1653076816}
-  - {fileID: 566080987}
 --- !u!224 &566080987 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 6843374699783981977, guid: 35fd3f1105bb4ac42a77e784b0757a53, type: 3}
@@ -791,11 +786,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5d0e9460e36ad274d8d2bfcbdf596e3a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Monster
+  _buffSystem: {fileID: 0}
   monsterName: 
-  monsterID: 0
   maxHp: 0
   currentHp: 0
-  block: 0
+  currentBlock: 0
 --- !u!1 &832575517
 GameObject:
   m_ObjectHideFlags: 0
@@ -1429,6 +1424,50 @@ Transform:
   m_Children: []
   m_Father: {fileID: 396590984}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1341543266
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1341543267}
+  - component: {fileID: 1341543268}
+  m_Layer: 0
+  m_Name: CardDataBase
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1341543267
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1341543266}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 396590984}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1341543268
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1341543266}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3a7b5d932eeeb7e4383e74758d84a5ba, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CardDatabase
 --- !u!1 &1383694489
 GameObject:
   m_ObjectHideFlags: 0

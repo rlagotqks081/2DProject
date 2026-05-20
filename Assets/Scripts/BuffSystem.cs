@@ -34,6 +34,10 @@ public class BuffSystem : MonoBehaviour
         return 0;
     }
 
+    public void RemoveBuff(BuffType type)
+    {
+        if (currentBuffs.ContainsKey(type)) currentBuffs.Remove(type);
+    }
     public void TickTurnBuffs()
     {
         if (currentBuffs.ContainsKey(BuffType.Vulnerable)) AddBuff(BuffType.Vulnerable, -1);

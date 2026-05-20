@@ -1,0 +1,58 @@
+{
+  "cards": [
+    {
+      "cardID": 1001,
+      "cardName": "타격",
+      "cardType": "Attack",
+      "cost": 1,
+      "iconPath": "not",
+      "upgradeCostBonus": 0,
+      "isExhaust": false,
+      "isEthereal": false,
+      "cardEffects": [
+        {
+          "effectType": "Damage",
+          "triggerType": "OnPlay",
+          "value": 6,
+          "executeCount": 1,
+          "upgradeBonus": 3,
+          "upgradeCountBonus": 0,
+          "targetBuffType": "None",
+          "effectTarget": "Target"
+        }
+      ]
+    },
+    {
+      "cardID": 1002,
+      "cardName": "이연격",
+      "cardType": "Attack",
+      "cost": 2,
+      "iconPath": "not",
+      "upgradeCostBonus": 0,
+      "isExhaust": false,
+      "isEthereal": false,
+      "cardEffects": [
+        {
+          "effectType": "Damage",
+          "triggerType": "OnPlay",
+          "value": 6,
+          "executeCount": 1,
+          "upgradeBonus": 3,
+          "upgradeCountBonus": 0,
+          "targetBuffType": "None",
+          "effectTarget": "Target"
+        },
+        {
+          "effectType": "Damage",
+          "triggerType": "OnPlay",
+          "value": 6,
+          "executeCount": 1,
+          "upgradeBonus": 3,
+          "upgradeCountBonus": 0,
+          "targetBuffType": "None",
+          "effectTarget": "Target"
+        }
+      ]
+    }
+  ]
+}

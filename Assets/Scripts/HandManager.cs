@@ -15,36 +15,56 @@ public class HandManager : MonoBehaviour
     [SerializeField] private float arcIntensity = -5f;
     [SerializeField] private float rotationIntensity = 5f;
 
-    private List<GameObject> activeCardUIs = new List<GameObject>();
+    // 현재 핸드에 있는 카드 오브젝트
+    private List<GameObject> handCardUIs = new List<GameObject>();
 
+    private void Awake()
+    {
+        if (Instance == null) Instance = this;
+        else Destroy(gameObject);
+    }
 
     /// <summary>
     /// 카드 데이터(RuntimeCard)를 받아 화면에 생성하고 손패에 추가하는 함수
     /// </summary>
     public void AddCardToHand(RuntimeCard cardData)
     {
-        // 1. 프리팹 생성
-        GameObject newCardObj = Instantiate(cardPrefab, handLayoutGroup);
-        CardUI cardUI = newCardObj.GetComponent<CardUI>();
+        GameObject newCardObj;
 
-        // 2. 데이터 연동 (SetupUI는 아까 만든 것)
-        cardUI.SetupUI(cardData);
+        // 1. 해당 런타임카드의 CardUI가 있는지 확인
+        if(CardManager.Instance.activeCardUIs.ContainsKey(cardData))
+        {
+            newCardObj = CardManager.Instance.activeCardUIs[cardData].gameObject;
+            newCardObj.SetActive(true);
+            newCardObj.GetComponent<CardUI>().UpdateUI();
+        }
+        else
+        {
+            // 프리팹 생성
+            newCardObj = Instantiate(cardPrefab, handLayoutGroup);
+            CardUI newCardUI = newCardObj.GetComponent<CardUI>();
 
-        // 3. 리스트 관리
-        activeCardUIs.Add(newCardObj);
+            // 데이터 연동 
+            newCardUI.SetupUI(cardData);
+        }
 
-        // 4. [연출] 드로우 애니메이션
-        newCardObj.transform.localScale = Vector3.zero;
-        newCardObj.transform.DOScale(Vector3.one, 0.3f).SetEase(Ease.OutBack);
-
-        // 5. 손패 정렬 로직 호출 (부채꼴 혹은 일렬 정렬)
+        if (newCardObj != null)
+        {
+            handCardUIs.Add(newCardObj);
+            newCardObj.transform.localScale = Vector3.zero;
+            newCardObj.transform.DOScale(Vector3.one, 0.3f).SetEase(Ease.OutBack);
+        }
+        // 5. 손패 정렬 로직 호출 
         AlignCards();
     }
 
+    /// <summary>
+    /// 손에 있는 CardUI오브젝트들을 부채꼴로 정렬하는 함수
+    /// </summary>
     [ContextMenu("AlignCards")]
     public void AlignCards()
     {
-        int cardCount = activeCardUIs.Count;
+        int cardCount = handCardUIs.Count;
         if (cardCount == 0) return;
 
         float midindex = (cardCount - 1) / 2f;
@@ -55,21 +75,22 @@ public class HandManager : MonoBehaviour
             float posX = offset * cardSpacing;
             float posY = offset * offset * arcIntensity + 100f;
             float rotZ = -offset * rotationIntensity;
-            activeCardUIs[i].GetComponent<RectTransform>().localPosition = new Vector3(posX, posY, 0f);
-            activeCardUIs[i].GetComponent<RectTransform>().localRotation = Quaternion.Euler(0f, 0f, rotZ);
+            handCardUIs[i].GetComponent<RectTransform>().localPosition = new Vector3(posX, posY, 0f);
+            handCardUIs[i].GetComponent<RectTransform>().localRotation = Quaternion.Euler(0f, 0f, rotZ);
 
         }
     }
 
     /// <summary>
-    /// 카드가 사용되거나 버려질 때 호출
+    /// 손에서 버려지는 카드의 CardUI를 받아서 해당 오브젝트를 disactive하고 재정렬 하는 함수
     /// </summary>
-    public void RemoveCardFromHand(GameObject cardObj)
+    public void RemoveCardFromHand(CardUI cardUI) // 버려지는 애니메이션 추가해야함
     {
-        if (activeCardUIs.Contains(cardObj))
+        GameObject cardObj = cardUI.gameObject;
+        if (handCardUIs.Contains(cardObj))
         {
-            activeCardUIs.Remove(cardObj);
-            Destroy(cardObj); 
+            handCardUIs.Remove(cardObj);
+            cardObj.SetActive(false);
             AlignCards();   
         }
     }

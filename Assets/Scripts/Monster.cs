@@ -5,6 +5,7 @@ public class Monster : MonoBehaviour, IDamageable
 {
     // 나를 태어나게 한 원본 SO (디버깅이나 원본 데이터 확인용)
     public MonsterData OriginData { get; private set; }
+    public BuffSystem _buffSystem;
 
     [Header("[런타임 실시간 스탯]")]
     public string monsterName;
@@ -36,7 +37,7 @@ public class Monster : MonoBehaviour, IDamageable
 
         runtimePatterns = new List<MonsterPatternData>(data.patterns);
         currentPatternIndex = 0;
-
+        _buffSystem = GetComponent<BuffSystem>();
         Debug.Log($"[Monster] '{monsterName}' 로드 완료. (HP: {maxHp})");
     }
 
@@ -101,5 +102,9 @@ public class Monster : MonoBehaviour, IDamageable
     {
         if (runtimePatterns == null || runtimePatterns.Count <= 1) return;
         currentPatternIndex = (currentPatternIndex + 1) % runtimePatterns.Count;
+    }
+    public void SetHighlight(bool IsHighlight)
+    {
+
     }
 }

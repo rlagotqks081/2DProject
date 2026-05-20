@@ -1,6 +1,8 @@
-﻿using Unity.VisualScripting;
+﻿using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine.UIElements;
 
+public enum DescriptionType { Default, InHand, Targeting }
 public class RuntimeCard   // 게임 플레이중 동적 생성되는 원본(CardDatra)의 복사본 카드
 {
     // 원본CardData의 주소값 (수정 X)
@@ -24,15 +26,15 @@ public class RuntimeCard   // 게임 플레이중 동적 생성되는 원본(Car
         return true;
     }
 
+
     public void ModifyTemporaryCost(int amount)
     {
         temporaryCostModifier += amount;
     }
 
-    // 강화시 증가하는 수치를 반영한 최종값 계산
-    public int GetCalculatedValue(CardEffect effect)
+    public string GetDescription(DescriptionType desType, bool IsApplyBuff, Monster target = null)
     {
-        return effect.value + (effect.upgradeBonus * UpgradeCount);
+        return DescriptionGenerator.Generate(this, desType, IsApplyBuff, target);
     }
 
     // 강화시 증가하는 횟수를 반영한 최종 발동횟수 계산

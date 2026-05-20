@@ -8,6 +8,7 @@ public class BuffManager : MonoBehaviour
 {
     public static BuffManager Instance { get; private set; }
 
+    
 
     private void Awake()
     {
@@ -28,4 +29,12 @@ public class BuffManager : MonoBehaviour
         }
     }
 
+    public void RemoveBuff(GameObject target, BuffType type)
+    {
+        BuffSystem buffSystem = target.GetComponent<BuffSystem>();
+        if (buffSystem != null)
+        {
+            buffSystem.RemoveBuff(type);
+        }
+    }
 }

@@ -1,7 +1,8 @@
-﻿using UnityEngine;
-using UnityEngine.UI;
+﻿using TMPro;
+using UnityEngine;
 using UnityEngine.EventSystems;
-using TMPro;
+using UnityEngine.UI;
+using static UnityEngine.UI.Image;
 
 public class CardUI : MonoBehaviour, IPointerClickHandler
 {
@@ -19,13 +20,9 @@ public class CardUI : MonoBehaviour, IPointerClickHandler
     public void SetupUI(RuntimeCard runtimeCard)
     {
         TargetRuntimeCard = runtimeCard;
-
-        // 원본 데이터(OriginData)에서 정보를 가져와 UI에 주입
         var origin = runtimeCard.OriginData;
 
         //if (artworkImage != null) artworkImage.sprite = origin.cardIllustration;   ----- 나중에 경로넣으면 하기
-        if (nameText != null) nameText.text = origin.cardName;
-        if (descText != null) descText.text = origin.description;
 
         //런타임에 계산된 비용(강화나 디버프 효과 적용값)을 표시
         UpdateUI();
@@ -34,12 +31,14 @@ public class CardUI : MonoBehaviour, IPointerClickHandler
     /// <summary>
     /// 비용이나 수치가 변했을 때 UI만 갱신할 때 사용
     /// </summary>
-    public void UpdateUI()
+    public void UpdateUI(Monster target = null) // 카드 설명에서 강화된 수치는 어떻게 적용할지 아직 추가하지않음
     {
         if (costText != null && TargetRuntimeCard != null)
         {
             costText.text = TargetRuntimeCard.GetCalculatedCost().ToString();
         }
+        if (nameText != null) nameText.text = TargetRuntimeCard.OriginData.cardName;
+        if (descText != null) descText.text = TargetRuntimeCard.GetDescription(DescriptionType.Default,target);
     }
 
     /// <summary>
@@ -65,7 +64,7 @@ public class CardUI : MonoBehaviour, IPointerClickHandler
         // 1. 배틀 매니저에게 내 데이터와 타겟 정보를 던짐
         if (BattleManager.Instance != null)
         {
-            BattleManager.Instance.PlayerUseCard(TargetRuntimeCard, targetMonster);
+            BattleManager.Instance.PlayerUseCard(this, targetMonster);
         }
 
 

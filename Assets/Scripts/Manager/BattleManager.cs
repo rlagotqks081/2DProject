@@ -1,5 +1,6 @@
-﻿using UnityEngine;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using UnityEngine;
+using static UnityEngine.GraphicsBuffer;
 
 public class BattleManager : MonoBehaviour
 {
@@ -124,44 +125,50 @@ public class BattleManager : MonoBehaviour
 
 
     /// <summary>
-    /// 특정 트리거 시점(OnPlay, OnDiscard 등)에 맞춰 카드가 가진 복합 효과들을 해석하고 가공 수식을 집행
+    /// 특정 트리거 시점(OnPlay, OnDiscard 등)에 맞춰 카드가 가진 효과를 실행 + 전체적 대상 효과 추가해야함
     /// </summary>
     public void ExecuteCardTriggerEffects(RuntimeCard runtimeCard, CardTriggerType targetTrigger, GameObject targetMonster)
     {
         if (runtimeCard == null) return;
         GameObject playerObj = Player.Instance.gameObject;
-
+        Monster monster = targetMonster.GetComponent<Monster>();
         foreach (CardEffect effect in runtimeCard.OriginData.cardEffects)
         {
             if (effect.GetTriggerType() != targetTrigger) continue;
 
-            // 효과 명세서 대상에 따라 1차 타겟 지정
             GameObject actualTarget = (effect.GetTarget() == EffectTarget.Self) ? playerObj : targetMonster;
+            int finalValue = 0;
+            int finalExecuteCount = CardCalculator.GetAttackCount(runtimeCard, effect);
 
-            // 강화 수치가 반영된 기본 위력 및 횟수 추출
-            int finalValue = runtimeCard.GetCalculatedValue(effect);
-            int finalExecuteCount = runtimeCard.GetCalculatedCount(effect);
-
-            // 효과별 실시간 스탯 가공 조건문 (방어도 비례, 잃은 체력 비례 등)
-            switch (effect.GetConditionType())
+            switch(effect.GetEffectType())
             {
-                case CardConditionType.Count_By_Strength:
-          
-                    BuffSystem playerBuff = playerObj.GetComponent<BuffSystem>();
-                    if (playerBuff != null)
-                    {
-                        finalExecuteCount = playerBuff.GetBuffValue(BuffType.Strength);
-                    }
+                case CardEffectType.Damage:
+                    finalValue = CardCalculator.DamageCalculate(runtimeCard, effect, monster);
                     break;
-
-                case CardConditionType.Value_By_Block:
-                    finalValue = Player.Instance.block;
+                case CardEffectType.Block:
+                    finalValue = CardCalculator.BlockCalculate(runtimeCard, effect);
                     break;
-
-                case CardConditionType.Value_By_LostHP:
-                    finalValue = Player.Instance.maxHp - Player.Instance.currentHp;
+                case CardEffectType.GetBuff:
+                case CardEffectType.ApplyBuff:
+                    finalValue = CardCalculator.GetBaseDamage(runtimeCard, effect);
+                    break;
+                case CardEffectType.Damage_By_Block:
+                    finalValue = CardCalculator.GetBlockValueEffectDamage(runtimeCard, effect, monster, true);
+                    break;
+                case CardEffectType.DrawCard:
+                    finalValue = CardCalculator.GetBaseDamage(runtimeCard, effect);
+                    break;
+                case CardEffectType.DiscardCard:
+                    finalValue = CardCalculator.GetBaseDamage(runtimeCard, effect);
+                    break;
+                case CardEffectType.Damage_Use_AllCost:
+                    finalValue = CardCalculator.DamageCalculate(runtimeCard, effect, monster);
+                    break;
+                case CardEffectType.Block_Use_AllCost:
+                    finalValue = CardCalculator.BlockCalculate(runtimeCard, effect);
                     break;
             }
+
 
             //최종 계산된 가공 수치와 횟수만큼 인게임 효과 실행
             for (int i = 0; i < finalExecuteCount; i++)
@@ -181,26 +188,24 @@ public class BattleManager : MonoBehaviour
 
         switch (type)
         {
+            case CardEffectType.Damage_Use_AllCost:
+            case CardEffectType.Damage_By_Block:
             case CardEffectType.Damage:
-                int finalDamage = UtilManager.CalculateFinalDamage(value, playerObj, target);
-
                 IDamageable damageable = target.GetComponent<IDamageable>();
                 if (damageable != null)
                 {
-                    damageable.TakeDamage(finalDamage);
+                    damageable.TakeDamage(value);
                 }
                 break;
-
+            case CardEffectType.Block_Use_AllCost:
             case CardEffectType.Block:
-                int finalBlock = UtilManager.CalculateFinalBlock(value, playerObj);
-                Player.Instance.AddBlock(finalBlock);
+                Player.Instance.AddBlock(value);
                 break;
-
+            case CardEffectType.GetBuff:
             case CardEffectType.ApplyBuff:
                 BuffType buffType = effect.GetBuffType();
                 BuffManager.Instance.ApplyBuff(target, buffType, value);
                 break;
-
             case CardEffectType.DrawCard:
                 CardManager.Instance.DrawCards(value);
                 break;

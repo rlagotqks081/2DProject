@@ -4,7 +4,7 @@ using UnityEngine;
 public class Player : MonoBehaviour, IDamageable
 {
     public static Player Instance { get; private set; }
-
+    public BuffSystem _buffSystem { get; private set; } 
     [Header("Stats")]
     public int maxHp = 80;
     public int currentHp;
@@ -14,10 +14,13 @@ public class Player : MonoBehaviour, IDamageable
 
     void Awake()
     {
-        if (Instance == null) Instance = this;
+        if (Instance == null)
+        {
+            Instance = this;
+            _buffSystem = GetComponent<BuffSystem>();
+        }
         else Destroy(gameObject);
 
-       
     }
 
     public void ResetStats()

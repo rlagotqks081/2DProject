@@ -43,7 +43,7 @@ public class GameManager : MonoBehaviour
                 break;
             case TurnState.MonsterTurn:
                 Debug.Log("Monster Turn Start");
-                if (currentMonster != null) currentMonster.ExecuteTurn();
+               // if (currentMonster != null) currentMonster.ExecuteTurn();
                 ChangeState(TurnState.PlayerTurn);
                 break;
             case TurnState.Won:
@@ -59,7 +59,7 @@ public class GameManager : MonoBehaviour
     {
         Debug.Log("GameManager - SetupBattle 실행");
         
-        player.ResetStats();
+       // player.ResetStats();
 
         // 여기서 몬스터 랜덤소환 or 몬스터 소환
 
@@ -77,23 +77,23 @@ public class GameManager : MonoBehaviour
         ChangeState(TurnState.MonsterTurn);
     }
 
-    public void ProcessMonsterAction(GameObject monsterObj, MonsterAction action)
-    {
-        foreach (SubEffect effect in action.subEffects)
-        {
-            switch (effect.effectType)
-            {
-                case "Attack":
-                    break;
-                case "Defend":
-                    break;
-                case "Buff_Vulnerable":
-                    break;
-                case "Buff_Strength":
-                    break;
+    //public void ProcessMonsterAction(GameObject monsterObj, MonsterAction action)
+    //{
+    //    foreach (SubEffect effect in action.subEffects)
+    //    {
+    //        switch (effect.effectType)
+    //        {
+    //            case "Attack":
+    //                break;
+    //            case "Defend":
+    //                break;
+    //            case "Buff_Vulnerable":
+    //                break;
+    //            case "Buff_Strength":
+    //                break;
 
-            }
-        }
+    //        }
+    //    }
 
-    }
+    //}
 }

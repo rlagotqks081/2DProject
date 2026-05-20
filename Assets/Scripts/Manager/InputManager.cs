@@ -19,6 +19,7 @@ public class InputManager : MonoBehaviour
     [SerializeField] private LayerMask targetLayer;
 
     private CardUI selectedCardUI;
+    private Monster hoverTarget;
 
     private void Awake()
     {
@@ -39,6 +40,7 @@ public class InputManager : MonoBehaviour
     {
         if(currentState == InputState.SelectingTarget)
         {
+            UpdateHoverTarget();
             HandleTargetSelection();
         }
     }
@@ -55,7 +57,34 @@ public class InputManager : MonoBehaviour
         currentState = InputState.SelectingTarget;
         Debug.Log($"[InputManager] 카드 선택됨: {card.name}. 타겟을 선택하세요.");
     }
+    private void UpdateHoverTarget()
+    {
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        RaycastHit2D hit = Physics2D.GetRayIntersection(ray, Mathf.Infinity, targetLayer);
 
+        Monster foundMonster = (hit.collider != null) ? hit.collider.GetComponent<Monster>() : null;
+
+        // 타겟이 바뀌었을 때만 이벤트 처리 (이전 타겟 해제, 새 타겟 하이라이트 등)
+        if (hoverTarget != foundMonster)
+        {
+            if (hoverTarget != null) OnTargetExit(hoverTarget);
+            hoverTarget = foundMonster;
+            if (hoverTarget != null) OnTargetEnter(hoverTarget);
+        }
+    }
+
+    private void OnTargetEnter(Monster monster)
+    {
+        // 여기서 몬스터의 하이라이트 효과를 켜는 함수 호출!
+        Debug.Log($"[InputManager] 타겟 조준 중: {monster.name}");
+        monster.SetHighlight(true);
+    }
+
+    private void OnTargetExit(Monster monster)
+    {
+        // 하이라이트 효과 끄기
+        monster.SetHighlight(false);
+    }
     /// <summary>
     /// 타겟(몬스터)을 조준하고 클릭하거나 취소하는 로직
     /// </summary>
@@ -74,18 +103,13 @@ public class InputManager : MonoBehaviour
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             RaycastHit2D hit = Physics2D.GetRayIntersection(ray, Mathf.Infinity, targetLayer);
 
-            if (hit.collider != null)
+            if (hoverTarget != null)
             {
-                Monster targetMonster = hit.collider.GetComponent<Monster>();
-                if(targetMonster != null)
-                {
-                    Debug.Log($"[InputManager] {selectedCardUI.name} 카드를 {targetMonster.name}에게 사용합니다!");
-
-                    //카드 사용 로직
-                    selectedCardUI.OnCardUsed(targetMonster.gameObject);
-                    selectedCardUI = null;
-                    currentState = InputState.None;
-                }
+                //카드 사용 로직
+                selectedCardUI.OnCardUsed(hoverTarget.gameObject);
+                selectedCardUI = null;
+                hoverTarget = null;
+                currentState = InputState.None;
             }
         }
     }
@@ -100,6 +124,12 @@ public class InputManager : MonoBehaviour
         if (currentState == InputState.None) return;
 
         Debug.Log("[InputManager] 카드 선택이 취소되었습니다.");
+
+        if (hoverTarget != null)
+        {
+            OnTargetExit(hoverTarget);
+            hoverTarget = null;
+        }
 
         if (selectedCardUI != null)
         {
