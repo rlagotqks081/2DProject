@@ -7,7 +7,7 @@ public class CardUIEffect : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
 {
     [Header("Animation Settings")]
     [SerializeField] private float hoverScale = 1.2f;
-    [SerializeField] private float hoverMoveY = 50f;
+    [SerializeField] private float hoverMoveY = 100f;
     [SerializeField] private float duration = 0.2f;
 
     private Vector3 originalPosition;
@@ -18,6 +18,9 @@ public class CardUIEffect : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
     void Start()
     {
         UpdateOriginalPosition();
+    }
+    public void OnEnable()
+    {
         originalScale = transform.localScale;
     }
 
@@ -54,6 +57,12 @@ public class CardUIEffect : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
 
         transform.DOScale(originalScale, duration).SetEase(Ease.OutCubic);
         transform.DOLocalMove(originalPosition, duration).SetEase(Ease.OutCubic);
+    }
+
+    public void MoveCardPosition(Vector3 newPosition)
+    {
+        transform.DOKill();
+        transform.DOLocalMove(newPosition, duration).SetEase(Ease.OutCubic);
     }
 
     public void UpdateOriginalPosition()

@@ -5,6 +5,7 @@
       "cardName": "타격",
       "cardType": "Attack",
       "cost": 1,
+      "description": "적에게 피해를 {Damage} 줍니다.",
       "iconPath": "not",
       "upgradeCostBonus": 0,
       "isExhaust": false,
@@ -27,6 +28,7 @@
       "cardName": "이연격",
       "cardType": "Attack",
       "cost": 2,
+      "description": "적에게 피해를 {Damage} 만큼 {Count} 번 줍니다.",
       "iconPath": "not",
       "upgradeCostBonus": 0,
       "isExhaust": false,
@@ -49,6 +51,243 @@
           "executeCount": 1,
           "upgradeBonus": 3,
           "upgradeCountBonus": 0,
+          "targetBuffType": "None",
+          "effectTarget": "Target"
+        }
+      ]
+    },
+    {
+      "cardID": 1003,
+      "cardName": "강타",
+      "cardType": "Attack",
+      "cost": 2,
+      "description": "적에게 피해를 {Damage} 만큼 입히고 취약을 {BuffValue} 부여합니다.",
+      "iconPath": "not",
+      "upgradeCostBonus": 0,
+      "isExhaust": false,
+      "isEthereal": false,
+      "cardEffects": [
+        {
+          "effectType": "Damage",
+          "triggerType": "OnPlay",
+          "value": 9,
+          "executeCount": 1,
+          "upgradeBonus": 6,
+          "upgradeCountBonus": 0,
+          "targetBuffType": "None",
+          "effectTarget": "Target"
+        },
+        {
+          "effectType": "ApplyBuff",
+          "triggerType": "OnPlay",
+          "value": 2,
+          "executeCount": 1,
+          "upgradeBonus": 1,
+          "upgradeCountBonus": 0,
+          "targetBuffType": "Vulnerable",
+          "effectTarget": "Target"
+        }
+      ]
+    },
+    {
+      "cardID": 1004,
+      "cardName": "드로우",
+      "cardType": "Skill",
+      "cost": 1,
+      "description": "카드를 {DrawValue} 장 뽑습니다.",
+      "iconPath": "not",
+      "upgradeCostBonus": 0,
+      "isExhaust": false,
+      "isEthereal": false,
+      "cardEffects": [
+        {
+          "effectType": "DrawCard",
+          "triggerType": "OnPlay",
+          "value": 2,
+          "executeCount": 1,
+          "upgradeBonus": 1,
+          "upgradeCountBonus": 0,
+          "targetBuffType": "None",
+          "effectTarget": "Self"
+        }
+      ]
+    },
+    {
+      "cardID": 1005,
+      "cardName": "예비",
+      "cardType": "Skill",
+      "cost": 0,
+      "description": "카드를 {DrawValue} 장 뽑습니다. 카드를 {DiscardValue} 장 버립니다.",
+      "iconPath": "not",
+      "upgradeCostBonus": 0,
+      "isExhaust": false,
+      "isEthereal": false,
+      "cardEffects": [
+        {
+          "effectType": "DrawCard",
+          "triggerType": "OnPlay",
+          "value": 1,
+          "executeCount": 1,
+          "upgradeBonus": 1,
+          "upgradeCountBonus": 0,
+          "targetBuffType": "None",
+          "effectTarget": "Self"
+        },
+        {
+          "effectType": "DiscardCard",
+          "triggerType": "OnPlay",
+          "value": 1,
+          "executeCount": 1,
+          "upgradeBonus": 1,
+          "upgradeCountBonus": 0,
+          "targetBuffType": "None",
+          "effectTarget": "Self"
+        }
+      ]
+    },
+    {
+      "cardID": 1006,
+      "cardName": "단검 분사",
+      "cardType": "Attack",
+      "cost": 1,
+      "description": "적 전체에게 피해를 {Damage} 만큼 {Count} 번 줍니다.",
+      "iconPath": "not",
+      "upgradeCostBonus": 0,
+      "isExhaust": false,
+      "isEthereal": false,
+      "cardEffects": [
+        {
+          "effectType": "Damage",
+          "triggerType": "OnPlay",
+          "value": 6,
+          "executeCount": 2,
+          "upgradeBonus": 3,
+          "upgradeCountBonus": 0,
+          "targetBuffType": "None",
+          "effectTarget": "AllEnemy"
+        }
+      ]
+    },
+    {
+      "cardID": 1007,
+      "cardName": "분노",
+      "cardType": "Skill",
+      "cost": 1,
+      "description": "힘을 {BuffValue} 얻습니다.",
+      "iconPath": "not",
+      "upgradeCostBonus": 0,
+      "isExhaust": false,
+      "isEthereal": false,
+      "cardEffects": [
+        {
+          "effectType": "GetBuff",
+          "triggerType": "OnPlay",
+          "value": 1,
+          "executeCount": 1,
+          "upgradeBonus": 1,
+          "upgradeCountBonus": 0,
+          "targetBuffType": "Strength",
+          "effectTarget": "Self"
+        }
+      ]
+    },
+    {
+      "cardID": 1008,
+      "cardName": "준비 자세",
+      "cardType": "Skill",
+      "cost": 1,
+      "description": "약화와 힘을 {BuffValue} 얻습니다. ",
+      "iconPath": "not",
+      "upgradeCostBonus": 0,
+      "isExhaust": false,
+      "isEthereal": false,
+      "cardEffects": [
+        {
+          "effectType": "GetBuff",
+          "triggerType": "OnPlay",
+          "value": 2,
+          "executeCount": 1,
+          "upgradeBonus": 1,
+          "upgradeCountBonus": 0,
+          "targetBuffType": "Strength",
+          "effectTarget": "Self"
+        },
+        {
+          "effectType": "GetBuff",
+          "triggerType": "OnPlay",
+          "value": 1,
+          "executeCount": 1,
+          "upgradeBonus": 0,
+          "upgradeCountBonus": 0,
+          "targetBuffType": "Weak",
+          "effectTarget": "Self"
+        }
+      ]
+    },
+    {
+      "cardID": 1009,
+      "cardName": "수비",
+      "cardType": "Skill",
+      "cost": 1,
+      "description": "방어도를 {Block} 얻습니다.",
+      "iconPath": "not",
+      "upgradeCostBonus": 0,
+      "isExhaust": false,
+      "isEthereal": false,
+      "cardEffects": [
+        {
+          "effectType": "Block",
+          "triggerType": "OnPlay",
+          "value": 5,
+          "executeCount": 1,
+          "upgradeBonus": 3,
+          "upgradeCountBonus": 0,
+          "targetBuffType": "None",
+          "effectTarget": "Self"
+        }
+      ]
+    },
+    {
+      "cardID": 1010,
+      "cardName": "몸통박치기",
+      "cardType": "Attack",
+      "cost": 1,
+      "description": "현재 방어도 만큼의 피해를 줍니다. \\n(피해를 {BlockValue} 줍니다.)",
+      "iconPath": "not",
+      "upgradeCostBonus": 1,
+      "isExhaust": false,
+      "isEthereal": false,
+      "cardEffects": [
+        {
+          "effectType": "Damage_By_Block",
+          "triggerType": "OnPlay",
+          "value": 0,
+          "executeCount": 1,
+          "upgradeBonus": 0,
+          "upgradeCountBonus": 0,
+          "targetBuffType": "None",
+          "effectTarget": "Target"
+        }
+      ]
+    },
+    {
+      "cardID": 1011,
+      "cardName": "꼬챙이",
+      "cardType": "Attack",
+      "cost": 0,
+      "description": "피해를 {Damage} 만큼 X 번 줍니다.",
+      "iconPath": "not",
+      "upgradeCostBonus": 0,
+      "isExhaust": false,
+      "isEthereal": false,
+      "cardEffects": [
+        {
+          "effectType": "Damage_Use_AllCost",
+          "triggerType": "OnPlay",
+          "value": 7,
+          "executeCount": 0,
+          "upgradeBonus": 3,
+          "upgradeCountBonus": 1,
           "targetBuffType": "None",
           "effectTarget": "Target"
         }

@@ -1,11 +1,18 @@
-﻿using UnityEngine;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
 
 public class Monster : MonoBehaviour, IDamageable
 {
     // 나를 태어나게 한 원본 SO (디버깅이나 원본 데이터 확인용)
     public MonsterData OriginData { get; private set; }
-    public BuffSystem _buffSystem;
+    public BuffSystem buffSystem { get; private set; }
+
+    [Header("")]
+    public Image fillImage;
+    public TextMeshProUGUI healthText;
+    public TextMeshProUGUI nameText;
 
     [Header("[런타임 실시간 스탯]")]
     public string monsterName;
@@ -37,7 +44,7 @@ public class Monster : MonoBehaviour, IDamageable
 
         runtimePatterns = new List<MonsterPatternData>(data.patterns);
         currentPatternIndex = 0;
-        _buffSystem = GetComponent<BuffSystem>();
+        buffSystem = GetComponent<BuffSystem>();
         Debug.Log($"[Monster] '{monsterName}' 로드 완료. (HP: {maxHp})");
     }
 
@@ -63,6 +70,7 @@ public class Monster : MonoBehaviour, IDamageable
         if (finalDamage > 0)
         {
             currentHp = Mathf.Max(0, currentHp - finalDamage);
+            UpdateHealthBar();
             Debug.Log($"[{monsterName}] 피격! 남은 체력: {currentHp}/{maxHp}");
         }
 
@@ -73,6 +81,14 @@ public class Monster : MonoBehaviour, IDamageable
         }
     }
 
+    private void UpdateHealthBar()
+    {
+        if(fillImage != null)
+        {
+            fillImage.fillAmount = (float)currentHp / maxHp;
+            healthText.text = currentHp.ToString() + "/" + maxHp.ToString();
+        }
+    }
     private void Die()
     {
         Debug.Log($"[{monsterName}] 사망!");

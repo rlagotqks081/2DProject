@@ -4,7 +4,7 @@ using System.Collections.Generic;
 public class BuffSystem : MonoBehaviour
 {
 
-    private Dictionary<BuffType, int> currentBuffs = new Dictionary<BuffType, int>();
+    [SerializeField] private Dictionary<BuffType, int> currentBuffs = new Dictionary<BuffType, int>();
 
     public void AddBuff(BuffType type, int value)
     {

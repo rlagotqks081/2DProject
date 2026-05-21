@@ -9,10 +9,20 @@ public class CardUI : MonoBehaviour, IPointerClickHandler
     public RuntimeCard TargetRuntimeCard { get; private set; }
 
     [Header("UI 컴포넌트 연결")]
-    [SerializeField] private Image artworkImage;      // 카드 일러스트
+    [SerializeField] private Image CardImage;      // 카드 일러스트
+    [SerializeField] private Image BaseImage;      // 카드 테두리 일러스트
     [SerializeField] private TextMeshProUGUI nameText;    // 카드 이름
     [SerializeField] private TextMeshProUGUI costText;    // 마나 비용
     [SerializeField] private TextMeshProUGUI descText;    // 카드 설명
+    [SerializeField] private TextMeshProUGUI typeText;    // 카드 종류
+
+
+    [ContextMenu("CardUpgradeTest")]
+    public void CardUpgradeTest()
+    {
+        TargetRuntimeCard.UpgradeCard();
+    }
+
 
     /// <summary>
     /// 카드 생성 시점에서 데이터와 UI를 연결하는 함수
@@ -57,16 +67,16 @@ public class CardUI : MonoBehaviour, IPointerClickHandler
     }
 
     /// <summary>
-    /// 카드가 최종적으로 사용되었을 때 호출 (InputManager -> 여기로 호출)
+    /// 카드가 최종적으로 사용되었을 때 호출 (사용성공 true / 실패 false 리턴)
     /// </summary>
-    public void OnCardUsed(GameObject targetMonster)
+    public bool OnCardUsed(GameObject targetMonster = null)
     {
         // 1. 배틀 매니저에게 내 데이터와 타겟 정보를 던짐
         if (BattleManager.Instance != null)
         {
-            BattleManager.Instance.PlayerUseCard(this, targetMonster);
+            return BattleManager.Instance.PlayerUseCard(this, targetMonster);
         }
-
+        return false;
 
     }
 }

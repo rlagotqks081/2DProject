@@ -8,7 +8,7 @@ public class BattleManager : MonoBehaviour
     public static BattleManager Instance { get; private set; }
 
     // 필드에 존재하는 활성화된 몬스터들을 관리하는 리스트
-    public List<Monster> activeMonsters = new List<Monster>();
+    [SerializeField] public List<Monster> activeMonsters = new List<Monster>();
 
     private void Awake()
     {
@@ -27,15 +27,15 @@ public class BattleManager : MonoBehaviour
     /// <summary>
     /// 플레이어가 손패(UI)에서 카드를 선택해 필드에 내려고 할 때 호출되는 함수
     /// </summary>
-    public void PlayerUseCard(CardUI targetCard, GameObject targetMonster)
+    public bool PlayerUseCard(CardUI targetCard, GameObject targetMonster = null)
     {
         RuntimeCard runtimeCard = targetCard.TargetRuntimeCard;
-        if (runtimeCard == null) return;
+        if (runtimeCard == null) return false;
 
         if (!runtimeCard.CanUse(out string failReason))
         {
             Debug.LogWarning($"[배틀] 카드 사용 실패: {failReason}");
-            return;
+            return false;
         }
 
         // --- 검사 통과: 에너지 차감 및 효과 집행 ---
@@ -56,6 +56,7 @@ public class BattleManager : MonoBehaviour
         {
             CardManager.Instance.UseCardToDiscard(runtimeCard);
         }
+        return true;
     }
 
     /// <summary>
@@ -127,11 +128,12 @@ public class BattleManager : MonoBehaviour
     /// <summary>
     /// 특정 트리거 시점(OnPlay, OnDiscard 등)에 맞춰 카드가 가진 효과를 실행 + 전체적 대상 효과 추가해야함
     /// </summary>
-    public void ExecuteCardTriggerEffects(RuntimeCard runtimeCard, CardTriggerType targetTrigger, GameObject targetMonster)
+    public void ExecuteCardTriggerEffects(RuntimeCard runtimeCard, CardTriggerType targetTrigger, GameObject targetMonster = null)
     {
         if (runtimeCard == null) return;
+        if (targetMonster == null && runtimeCard.GetCardEffectTarget() == EffectTarget.Target) return;
+        
         GameObject playerObj = Player.Instance.gameObject;
-        Monster monster = targetMonster.GetComponent<Monster>();
         foreach (CardEffect effect in runtimeCard.OriginData.cardEffects)
         {
             if (effect.GetTriggerType() != targetTrigger) continue;
@@ -143,7 +145,7 @@ public class BattleManager : MonoBehaviour
             switch(effect.GetEffectType())
             {
                 case CardEffectType.Damage:
-                    finalValue = CardCalculator.DamageCalculate(runtimeCard, effect, monster);
+                    finalValue = CardCalculator.DamageCalculate(runtimeCard, effect);
                     break;
                 case CardEffectType.Block:
                     finalValue = CardCalculator.BlockCalculate(runtimeCard, effect);
@@ -153,7 +155,7 @@ public class BattleManager : MonoBehaviour
                     finalValue = CardCalculator.GetBaseDamage(runtimeCard, effect);
                     break;
                 case CardEffectType.Damage_By_Block:
-                    finalValue = CardCalculator.GetBlockValueEffectDamage(runtimeCard, effect, monster, true);
+                    finalValue = CardCalculator.GetBlockValueEffectDamage(runtimeCard, effect, true);
                     break;
                 case CardEffectType.DrawCard:
                     finalValue = CardCalculator.GetBaseDamage(runtimeCard, effect);
@@ -162,7 +164,7 @@ public class BattleManager : MonoBehaviour
                     finalValue = CardCalculator.GetBaseDamage(runtimeCard, effect);
                     break;
                 case CardEffectType.Damage_Use_AllCost:
-                    finalValue = CardCalculator.DamageCalculate(runtimeCard, effect, monster);
+                    finalValue = CardCalculator.DamageCalculate(runtimeCard, effect);
                     break;
                 case CardEffectType.Block_Use_AllCost:
                     finalValue = CardCalculator.BlockCalculate(runtimeCard, effect);
@@ -183,18 +185,26 @@ public class BattleManager : MonoBehaviour
     /// </summary>
     private void ApplyEffect(CardEffectType type, GameObject target, int value, CardEffect effect)
     {
-        if (target == null) return;
-        GameObject playerObj = Player.Instance.gameObject;
+        if (target == null && effect.GetTarget() != EffectTarget.AllEnemy) return;
+
 
         switch (type)
         {
             case CardEffectType.Damage_Use_AllCost:
             case CardEffectType.Damage_By_Block:
             case CardEffectType.Damage:
+                if(target == null)
+                {
+                    foreach(Monster targets in activeMonsters)
+                    {
+                        targets.TakeDamage(CardCalculator.VulnerableCalculate(value, BuffManager.Instance.IsObjHasBuff(targets.gameObject,BuffType.Vulnerable)));
+                    }
+                    break;
+                }
                 IDamageable damageable = target.GetComponent<IDamageable>();
                 if (damageable != null)
                 {
-                    damageable.TakeDamage(value);
+                    damageable.TakeDamage(CardCalculator.VulnerableCalculate(value,BuffManager.Instance.IsObjHasBuff(target,BuffType.Vulnerable)));
                 }
                 break;
             case CardEffectType.Block_Use_AllCost:
@@ -203,14 +213,22 @@ public class BattleManager : MonoBehaviour
                 break;
             case CardEffectType.GetBuff:
             case CardEffectType.ApplyBuff:
-                BuffType buffType = effect.GetBuffType();
-                BuffManager.Instance.ApplyBuff(target, buffType, value);
+                if(target == null)
+                {
+                    foreach(Monster targets in activeMonsters)
+                    {
+                        BuffManager.Instance.ApplyBuff(targets.gameObject, effect.GetBuffType(), value);
+                    }
+                    break;
+                }
+                BuffManager.Instance.ApplyBuff(target, effect.GetBuffType(), value);
                 break;
             case CardEffectType.DrawCard:
                 CardManager.Instance.DrawCards(value);
                 break;
             case CardEffectType.DiscardCard:
                 // 카드 선택해서/랜덤으로 버리는 로직 짜기 @@
+                // 버려지는게 트리거인 카드들 실행시키기
                 break;
         }
     }

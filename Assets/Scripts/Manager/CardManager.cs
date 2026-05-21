@@ -4,7 +4,7 @@ using System.Collections.Generic;
 public class CardManager : MonoBehaviour
 {
     public static CardManager Instance { get; private set; }
-    
+
     // 드로우할 카드가 있는 파일
     public List<RuntimeCard> DrawPile {  get; private set; } = new List<RuntimeCard>();
     // 내 손에 있는 카드가 있는 파일
@@ -23,6 +23,28 @@ public class CardManager : MonoBehaviour
         else Destroy(gameObject);
     }
 
+    public void TestSetup()
+    {
+        AddCardOnDeck(1003);
+        AddCardOnDeck(1004);
+        AddCardOnDeck(1005);
+        AddCardOnDeck(1006);
+        AddCardOnDeck(1007);
+        AddCardOnDeck(1008);
+        AddCardOnDeck(1009);
+        AddCardOnDeck(1010);
+        AddCardOnDeck(1011);
+        SetupCards();
+    }
+
+    public void SetupCards()
+    {
+        DrawPile.Clear();
+        DrawPile.AddRange(CardDeck);
+        DrawCards(6);
+    }
+
+    [ContextMenu("DrawCards")]
     /// <summary>
     /// 드로우하는 카드의 데이터(RuntimeCard)를 HandPile에 저장하는 함수
     /// </summary>
@@ -116,8 +138,19 @@ public class CardManager : MonoBehaviour
     /// <summary>
     /// 기존에 없던 신규카드를 덱에 추가할때 호출
     /// </summary>
-    public void AddCardOnDeck(RuntimeCard card)
+    public void AddCardOnDeck(int CardID)
     {
-        //GameObject newCardObj;
+        RuntimeCard newCard = new RuntimeCard(CardDatabase.Instance.GetCard(CardID));
+        if(newCard != null)
+        {
+            CardDeck.Add(newCard);
+        }
+    }
+
+    public void AddCardUIDic(RuntimeCard newCard, CardUI newCardUI)
+    {
+        if (newCard != null && newCardUI != null)
+            activeCardUIs.Add(newCard, newCardUI);
+        else Debug.Log("activeCardUIs 데이터 추가 실패");
     }
 }

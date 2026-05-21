@@ -25,6 +25,7 @@ public class GameManager : MonoBehaviour
     }
     void Start()
     {
+        player = Player.Instance;
         ChangeState(TurnState.Start);
     }
 
@@ -59,8 +60,9 @@ public class GameManager : MonoBehaviour
     {
         Debug.Log("GameManager - SetupBattle 실행");
         
-       // player.ResetStats();
-
+       player.ResetStats();
+        HandManager.Instance.SetupHand();
+        CardManager.Instance.TestSetup();
         // 여기서 몬스터 랜덤소환 or 몬스터 소환
 
         ChangeState(TurnState.PlayerTurn);

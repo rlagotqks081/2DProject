@@ -18,8 +18,8 @@ public class InputManager : MonoBehaviour
     [Header("레이캐스트 설정")]
     [SerializeField] private LayerMask targetLayer;
 
-    private CardUI selectedCardUI;
-    private Monster hoverTarget;
+    [SerializeField] private CardUI selectedCardUI;
+    [SerializeField] private Monster hoverTarget;
 
     private void Awake()
     {
@@ -38,10 +38,14 @@ public class InputManager : MonoBehaviour
 
     private void Update()
     {
-        if(currentState == InputState.SelectingTarget)
+        if(currentState == InputState.SelectingTarget && EffectTarget.Target == selectedCardUI.TargetRuntimeCard.GetCardEffectTarget())
         {
             UpdateHoverTarget();
             HandleTargetSelection();
+        }
+        else 
+        {
+            HandleMousePosition();
         }
     }
 
@@ -77,12 +81,14 @@ public class InputManager : MonoBehaviour
     {
         // 여기서 몬스터의 하이라이트 효과를 켜는 함수 호출!
         Debug.Log($"[InputManager] 타겟 조준 중: {monster.name}");
+        selectedCardUI.UpdateUI(monster);
         monster.SetHighlight(true);
     }
 
     private void OnTargetExit(Monster monster)
     {
         // 하이라이트 효과 끄기
+        selectedCardUI.UpdateUI();
         monster.SetHighlight(false);
     }
     /// <summary>
@@ -90,7 +96,13 @@ public class InputManager : MonoBehaviour
     /// </summary>
     private void HandleTargetSelection()
     {
-        if(Input.GetMouseButtonDown(1))
+        if (selectedCardUI == null)
+        {
+            hoverTarget = null;
+            currentState = InputState.None;
+            return;
+        }
+        if (Input.GetMouseButtonDown(1))
         {
             CancelSelection();
             return;
@@ -98,7 +110,7 @@ public class InputManager : MonoBehaviour
 
         if(Input.GetMouseButtonDown(0))
         {
-            if (EventSystem.current.IsPointerOverGameObject()) return;
+           // if (EventSystem.current.IsPointerOverGameObject()) return;
             
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             RaycastHit2D hit = Physics2D.GetRayIntersection(ray, Mathf.Infinity, targetLayer);
@@ -107,10 +119,41 @@ public class InputManager : MonoBehaviour
             {
                 //카드 사용 로직
                 selectedCardUI.OnCardUsed(hoverTarget.gameObject);
+                CancelSelection();
                 selectedCardUI = null;
                 hoverTarget = null;
                 currentState = InputState.None;
             }
+        }
+    }
+
+    private void HandleMousePosition()
+    {
+        if(selectedCardUI == null)
+        {
+            hoverTarget = null;
+            currentState = InputState.None;
+            return;
+        }
+        if (Input.GetMouseButtonDown(1))
+        {
+            CancelSelection();
+            return;
+        }
+
+        if (Input.GetMouseButtonDown(0))
+        {
+            // if (EventSystem.current.IsPointerOverGameObject()) return;
+
+            Vector3 mousePosition = Input.mousePosition;
+            selectedCardUI.GetComponent<CardUIEffect>().MoveCardPosition(mousePosition);
+
+
+            //카드 사용 로직
+            selectedCardUI.OnCardUsed();
+            CancelSelection();
+            selectedCardUI = null;
+            currentState = InputState.None;
         }
     }
 
@@ -143,5 +186,6 @@ public class InputManager : MonoBehaviour
         // 변수 및 상태 초기화
         selectedCardUI = null;
         currentState = InputState.None;
+        HandManager.Instance.AlignCards();
     }
 }

@@ -32,9 +32,13 @@ public class RuntimeCard   // 게임 플레이중 동적 생성되는 원본(Car
         temporaryCostModifier += amount;
     }
 
-    public string GetDescription(DescriptionType desType, bool IsApplyBuff, Monster target = null)
+    public string GetDescription(DescriptionType desType, Monster target = null)
     {
-        return DescriptionGenerator.Generate(this, desType, IsApplyBuff, target);
+        return DescriptionGenerator.Generate(this, desType, target);
+    }
+    public string GetOriginalDesc()
+    {
+        return OriginData.description;
     }
 
     // 강화시 증가하는 횟수를 반영한 최종 발동횟수 계산
@@ -52,6 +56,22 @@ public class RuntimeCard   // 게임 플레이중 동적 생성되는 원본(Car
 
         if (finalCost <= 0) finalCost = 0;
         return finalCost;
+    }
+
+    /// <summary>
+    /// 인게임에서 카드 선택시 카드의 타입을 알기위한 함수 
+    /// </summary>
+    /// <returns>타겟한명을 짚어야하면 Target, 아니면 Self리턴</returns>
+    public EffectTarget GetCardEffectTarget()
+    {
+        foreach(CardEffect effect in OriginData.cardEffects)
+        {
+            if(effect.GetTarget() == EffectTarget.Target)
+            {
+                return EffectTarget.Target;
+            }
+        }
+        return EffectTarget.Self;
     }
 
     public bool CanUse(out string errorMessage)

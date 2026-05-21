@@ -1,6 +1,8 @@
-﻿using UnityEngine;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using Unity.VisualScripting;
+using UnityEngine;
+using static UnityEngine.Rendering.DebugUI;
 
 public static class CardCalculator
 {
@@ -13,7 +15,10 @@ public static class CardCalculator
         return effect.value + (card.UpgradeCount * effect.upgradeBonus);
     }
 
-    public static int DamageCalculate(RuntimeCard card, CardEffect effect, Monster target)
+    /// <summary>
+    /// 카드의 데미지 + 강화 + 힘버프 / 약화버프 계산
+    /// </summary>
+    public static int DamageCalculate(RuntimeCard card, CardEffect effect)
     {
         int value = effect.value + (card.UpgradeCount * effect.upgradeBonus);
 
@@ -27,13 +32,45 @@ public static class CardCalculator
             value = Mathf.FloorToInt(value * 0.75f);
         }
 
-        // 타겟이 있고 취약 상태면 증폭
-        if (target != null && target._buffSystem.GetBuffValue(BuffType.Vulnerable) > 0)
+        return Mathf.Max(0, value);
+    }
+
+    /// <summary>
+    /// 타겟몬스터가 있다면 타겟의 취약까지 모두 계산해서 데미지값을 출력
+    /// </summary>
+    /// <param name="card"></param>
+    /// <param name="effect"></param>
+    /// <param name="monster"></param>
+    /// <returns></returns>
+    public static int FinalDamageCalculate(RuntimeCard card, CardEffect effect, Monster monster = null)
+    {
+        int value = effect.value + (card.UpgradeCount * effect.upgradeBonus);
+
+
+        // 플레이어의 힘 적용
+        value += Player.Instance._buffSystem.GetBuffValue(BuffType.Strength);
+
+        // 플레이어의 약화 적용
+        if (Player.Instance._buffSystem.HasBuff(BuffType.Weak))
+        {
+            value = Mathf.FloorToInt(value * 0.75f);
+        }
+
+        if(monster != null && BuffManager.Instance.IsObjHasBuff(monster.gameObject, BuffType.Vulnerable))
         {
             value = Mathf.FloorToInt(value * 1.5f);
         }
 
         return Mathf.Max(0, value);
+    }
+
+    public static int VulnerableCalculate(int damage,  bool IstargetVulnerable)
+    {
+        if(IstargetVulnerable)
+        {
+            damage = Mathf.FloorToInt(damage * 1.5f);
+        }
+        return Mathf.Max(0, damage);
     }
 
     public static int BlockCalculate(RuntimeCard card, CardEffect effect)
@@ -54,39 +91,6 @@ public static class CardCalculator
         return value;
     }
 
-
-
-
-
-    /// <summary>
-    /// 카드의 Damage 효과 하나의 강화/플레이어 버프 계산
-    /// </summary>
-    public static int ApplyPlayerBuffs(RuntimeCard card, CardEffect effect)
-    {
-        int baseDmg = effect.value + (card.UpgradeCount * effect.upgradeBonus);
-
-        baseDmg += Player.Instance._buffSystem.GetBuffValue(BuffType.Strength);
-
-        if (Player.Instance._buffSystem.HasBuff(BuffType.Weak))
-            baseDmg = Mathf.FloorToInt(baseDmg * 0.75f);
-
-        return Mathf.Max(0, baseDmg); 
-    }
-
-    /// <summary>
-    /// 카드의 Damage 효과 하나의 강화/버프/적버프 계산
-    /// </summary>
-    public static int ApplyMonsterDebuffs(RuntimeCard card, CardEffect effect, Monster target)
-    {
-        int baseDmg = ApplyPlayerBuffs(card, effect);
-        if (target == null) return baseDmg;
-
-        if (target._buffSystem.HasBuff(BuffType.Vulnerable))
-            baseDmg = Mathf.FloorToInt(baseDmg * 1.5f);
-        return Mathf.Max(0, baseDmg);
-
-    }
-
     /// <summary>
     /// 카드의 effect 하나의 실행횟수의 강화 계산
     /// </summary>
@@ -103,7 +107,7 @@ public static class CardCalculator
     /// <summary>
     /// 방어력 비례 피해를 입히는 효과의 데미지 계산(인게임/타겟팅시엔 공격값, 이외에는 -1 리턴)
     /// </summary>
-    public static int GetBlockValueEffectDamage(RuntimeCard card, CardEffect effect, Monster target, bool IsInGame = false)
+    public static int GetBlockValueEffectDamage(RuntimeCard card, CardEffect effect, bool IsInGame = false)
     {
         if (!IsInGame) return -1;
         int value = effect.value + (card.UpgradeCount * effect.upgradeBonus);
@@ -118,14 +122,29 @@ public static class CardCalculator
         {
             value = Mathf.FloorToInt(value * 0.75f);
         }
+        return Mathf.Max(0, value);
+    }
+    public static int GetFinalBlockValueDamage(RuntimeCard card, CardEffect effect, Monster monster = null)
+    {
+        if (BattleManager.Instance.activeMonsters.Count == 0) return -1;
+        int value = effect.value + (card.UpgradeCount * effect.upgradeBonus);
 
-        // 타겟이 있고 취약 상태면 증폭
-        if (target != null && target._buffSystem.GetBuffValue(BuffType.Vulnerable) > 0)
+        value += Player.Instance.block;
+
+        // 플레이어의 힘 적용
+        value += Player.Instance._buffSystem.GetBuffValue(BuffType.Strength);
+
+        // 플레이어의 약화 적용
+        if (Player.Instance._buffSystem.HasBuff(BuffType.Weak))
+        {
+            value = Mathf.FloorToInt(value * 0.75f);
+        }
+
+        if (monster != null && BuffManager.Instance.IsObjHasBuff(monster.gameObject, BuffType.Vulnerable))
         {
             value = Mathf.FloorToInt(value * 1.5f);
         }
 
         return Mathf.Max(0, value);
-
     }
 }

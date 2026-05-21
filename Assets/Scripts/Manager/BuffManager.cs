@@ -8,7 +8,7 @@ public class BuffManager : MonoBehaviour
 {
     public static BuffManager Instance { get; private set; }
 
-    
+    private Dictionary<GameObject, BuffSystem> activeBuffs = new Dictionary<GameObject, BuffSystem>();
 
     private void Awake()
     {
@@ -18,23 +18,57 @@ public class BuffManager : MonoBehaviour
         }
     }
 
+    public void TurnEndChangeBuffs()
+    {
+        foreach(BuffSystem buffSystem in activeBuffs.Values)
+        {
+            buffSystem.TickTurnBuffs();
+        }
+    }
     public void ApplyBuff(GameObject target, BuffType type, int value)
     {
         if (target == null) return;
-
-        BuffSystem buffSystem = target.GetComponent<BuffSystem>();
-        if(buffSystem != null)
+        if (!activeBuffs.ContainsKey(target))
         {
-            buffSystem.AddBuff(type, value);
+            activeBuffs.Add(target, target.GetComponent<BuffSystem>());
         }
+        activeBuffs[target].AddBuff(type,value);
     }
 
     public void RemoveBuff(GameObject target, BuffType type)
     {
-        BuffSystem buffSystem = target.GetComponent<BuffSystem>();
-        if (buffSystem != null)
+        if (target == null) return; 
+        if (!activeBuffs.ContainsKey(target))
         {
-            buffSystem.RemoveBuff(type);
+            activeBuffs.Add(target, target.GetComponent<BuffSystem>());
+        }
+        activeBuffs[target].RemoveBuff(type);
+
+    }
+    public bool IsObjHasBuff(GameObject target, BuffType type)
+    {
+        if(activeBuffs.ContainsKey(target))
+        {
+            return activeBuffs[target].HasBuff(type);
+        }
+        return false;
+    }
+
+    public void AddBuffObj(GameObject target)
+    {
+        if (target == null) return;
+        if (activeBuffs.ContainsKey(target)) return;
+        BuffSystem buffSystem = target.GetComponent<BuffSystem>();
+        if (buffSystem == null) return;
+
+        activeBuffs.Add(target, buffSystem);
+    }
+    public void RemoveBuffObj(GameObject target)
+    {
+        if (target == null) return;
+        if(activeBuffs.ContainsKey(target))
+        {
+            activeBuffs.Remove(target);
         }
     }
 }

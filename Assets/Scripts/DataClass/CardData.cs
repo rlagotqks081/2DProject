@@ -33,6 +33,7 @@ public class CardData // 전체 카드 데이터
     public string cardName { get; set; }
     public string cardType { get; set; }      // 카드의 타입(CardType)
     public int cost { get; set; }                // 사용하는데 필요한 에너지
+    public string description { get; set; } // 카드의 설명
     public string iconPath { get; set; }
     public int upgradeCostBonus { get; set; } // 강화시 코스트 변동값 
 

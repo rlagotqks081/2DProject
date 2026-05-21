@@ -16,12 +16,20 @@ public class HandManager : MonoBehaviour
     [SerializeField] private float rotationIntensity = 5f;
 
     // 현재 핸드에 있는 카드 오브젝트
-    private List<GameObject> handCardUIs = new List<GameObject>();
+   [SerializeField] private List<GameObject> handCardUIs = new List<GameObject>();
 
     private void Awake()
     {
         if (Instance == null) Instance = this;
         else Destroy(gameObject);
+    }
+
+    public void SetupHand()
+    {
+        for(int i = handLayoutGroup.childCount - 1; i >= 0; i--)
+        {
+            Destroy(handLayoutGroup.GetChild(i).gameObject);
+        }
     }
 
     /// <summary>
@@ -43,6 +51,7 @@ public class HandManager : MonoBehaviour
             // 프리팹 생성
             newCardObj = Instantiate(cardPrefab, handLayoutGroup);
             CardUI newCardUI = newCardObj.GetComponent<CardUI>();
+            CardManager.Instance.AddCardUIDic(cardData, newCardUI);
 
             // 데이터 연동 
             newCardUI.SetupUI(cardData);
@@ -73,11 +82,13 @@ public class HandManager : MonoBehaviour
         {
             float offset = i - midindex;
             float posX = offset * cardSpacing;
-            float posY = offset * offset * arcIntensity + 100f;
+            float posY = offset * offset * arcIntensity + 150f;
             float rotZ = -offset * rotationIntensity;
+            
             handCardUIs[i].GetComponent<RectTransform>().localPosition = new Vector3(posX, posY, 0f);
             handCardUIs[i].GetComponent<RectTransform>().localRotation = Quaternion.Euler(0f, 0f, rotZ);
-
+            handCardUIs[i].GetComponent<CardUIEffect>().UpdateOriginalPosition();
+            handCardUIs[i].GetComponent<CardUI>().UpdateUI();
         }
     }
 
