@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 
 public enum CardType { Attack, Skill, Power, Status, Curse } // 카드의 타입(공격카드,스킬카드,.파워카드..)
-public enum CardEffectType { Damage, Block, GetBuff, ApplyBuff, DrawCard, DiscardCard, Damage_By_Block, Damage_Use_AllCost, Block_Use_AllCost } // 카드의 효과 타입(공격,방어,흡혈,버프(디버프)부여,드로우,버리기)
-public enum EffectTarget { Self, Target, AllEnemy } // 효과의 대상 타입
+public enum CardEffectType { Damage, Block, GetBuff, ApplyBuff, GetCost, DrawCard, DiscardCard, Damage_By_Block, Damage_Use_AllCost, Block_Use_AllCost } // 카드의 효과 타입(공격,방어,흡혈,버프(디버프)부여,드로우,버리기)
+public enum EffectTarget { Self, Target, AllEnemy, Random, Card } // 효과의 대상 타입
 public enum CardTriggerType { OnPlay, OnDiscard } // 카드가 발동하는 조건 (사용시,버려졌을시)
 public enum BuffType { None, Strength, Vulnerable, Weak, Poison, Artifact, Dexterity, Frail } // 부여되는 버프의 타입(힘,취약,약화,독)
 
@@ -18,7 +18,6 @@ public class CardEffect                  // 카드의 한가지 효과를 표현
     public string targetBuffType { get; set; }    // 버프의 타입(BuffType)
     public string effectTarget { get; set; }        //효과의 대상 타입(effectTarget)
 
-    // 인게임 로직 연산 시 안전하게 변환하여 쓸 프로퍼티 래퍼
     public CardEffectType GetEffectType() => System.Enum.TryParse(effectType, out CardEffectType res) ? res : CardEffectType.Damage;
     public CardTriggerType GetTriggerType() => System.Enum.TryParse(triggerType, out CardTriggerType res) ? res : CardTriggerType.OnPlay;
     public BuffType GetBuffType() => System.Enum.TryParse(targetBuffType, out BuffType res) ? res : BuffType.None;
@@ -42,7 +41,6 @@ public class CardData // 전체 카드 데이터
 
     public List<CardEffect> cardEffects { get; set; } = new List<CardEffect>();
 
-    // 외부 규칙 엔진용 프로퍼티 래퍼
     public CardType GetCardType() => System.Enum.TryParse(cardType, out CardType res) ? res : CardType.Attack;
 }
 

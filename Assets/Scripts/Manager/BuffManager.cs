@@ -1,7 +1,5 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
-using UnityEditor.Experimental.GraphView;
-using UnityEngine.Rendering;
 
 
 public class BuffManager : MonoBehaviour
@@ -25,14 +23,17 @@ public class BuffManager : MonoBehaviour
             buffSystem.TickTurnBuffs();
         }
     }
-    public void ApplyBuff(GameObject target, BuffType type, int value)
+    public void ApplyBuff(GameObject target, BuffType type, int value, int count = 1)
     {
         if (target == null) return;
         if (!activeBuffs.ContainsKey(target))
         {
             activeBuffs.Add(target, target.GetComponent<BuffSystem>());
         }
-        activeBuffs[target].AddBuff(type,value);
+        for (int i = 0; i < count; i++)
+        {
+            activeBuffs[target].AddBuff(type, value);
+        }
     }
 
     public void RemoveBuff(GameObject target, BuffType type)

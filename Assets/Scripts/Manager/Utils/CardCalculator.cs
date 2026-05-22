@@ -124,6 +124,8 @@ public static class CardCalculator
         }
         return Mathf.Max(0, value);
     }
+
+
     public static int GetFinalBlockValueDamage(RuntimeCard card, CardEffect effect, Monster monster = null)
     {
         if (BattleManager.Instance.activeMonsters.Count == 0) return -1;
@@ -146,5 +148,18 @@ public static class CardCalculator
         }
 
         return Mathf.Max(0, value);
+    }
+
+    public static bool IsSpendingAllCosts(RuntimeCard card)
+    {
+        if (card == null) return false;
+        foreach(CardEffect effect in card.OriginData.cardEffects)
+        {
+            if(effect.GetEffectType() == CardEffectType.Block_Use_AllCost || effect.GetEffectType() == CardEffectType.Damage_Use_AllCost)
+            {
+                return true;
+            }
+        }
+        return false;
     }
 }

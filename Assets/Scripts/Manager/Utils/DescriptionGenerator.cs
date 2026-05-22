@@ -47,6 +47,9 @@ public static class DescriptionGenerator
                     replacements["{All_Value}"] = CardCalculator.BlockCalculate(card, effect).ToString();
                     replacements["X"] = Player.Instance.currentEnergy.ToString();
                     break;
+                case CardEffectType.GetCost:
+                    replacements["{CostValue}"] = CardCalculator.GetBaseDamage(card, effect).ToString();
+                    break;
             }
         }
 

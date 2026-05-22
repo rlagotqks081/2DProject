@@ -6,7 +6,6 @@ public class CardDatabase : MonoBehaviour
 {
     public static CardDatabase Instance { get; private set; }
 
-    // 외부에서 접근 가능한 딕셔너리
 
     public Dictionary<int, CardData> cardDictionary= new Dictionary<int, CardData>();
 

@@ -25,15 +25,12 @@ public class CardManager : MonoBehaviour
 
     public void TestSetup()
     {
-        AddCardOnDeck(1003);
         AddCardOnDeck(1004);
         AddCardOnDeck(1005);
-        AddCardOnDeck(1006);
         AddCardOnDeck(1007);
-        AddCardOnDeck(1008);
-        AddCardOnDeck(1009);
-        AddCardOnDeck(1010);
         AddCardOnDeck(1011);
+        AddCardOnDeck(1012);
+        AddCardOnDeck(1013);
         SetupCards();
     }
 
@@ -44,25 +41,28 @@ public class CardManager : MonoBehaviour
         DrawCards(6);
     }
 
-    [ContextMenu("DrawCards")]
     /// <summary>
     /// 드로우하는 카드의 데이터(RuntimeCard)를 HandPile에 저장하는 함수
     /// </summary>
     /// <param name="amount"> 드로우하려는 카드의 수량</param>
-    public void DrawCards(int amount)
+    /// <param name="count"> 해당 효과의 실행 횟수</param>
+    public void DrawCards(int amount, int count = 1)
     {
-        for(int i = 0; i < amount; i++)
+        for(int j = 0; j < count; j++)  // 실행횟수에 따라 반복
         {
-            if (DrawPile.Count == 0)
+            for (int i = 0; i < amount; i++)  // 드로우하는 카드의 수 만큼 반복
             {
-                ShuffleDiscardIntoDrawPile();
-            }
-            if (DrawPile.Count > 0)
-            {
-                RuntimeCard card = DrawPile[0];
-                DrawPile.RemoveAt(0);
-                HandPile.Add(card);
-                HandManager.Instance.AddCardToHand(card);
+                if (DrawPile.Count == 0)
+                {
+                    ShuffleDiscardIntoDrawPile();
+                }
+                if (DrawPile.Count > 0)
+                {
+                    RuntimeCard card = DrawPile[0];
+                    DrawPile.RemoveAt(0);
+                    HandPile.Add(card);
+                    HandManager.Instance.AddCardToHand(card);
+                }
             }
         }
     }
@@ -117,9 +117,8 @@ public class CardManager : MonoBehaviour
         if (HandPile.Contains(card))
         {
             HandPile.Remove(card);
+            BattleManager.Instance.ExecuteCardTriggerEffects(card, CardTriggerType.OnDiscard);
             DiscardPile.Add(card);
-
-            // 여기에 카드가 버려졌을때 사용되는 카드 체크후 실행하는 로직 추가하기
             HandManager.Instance.RemoveCardFromHand(activeCardUIs[card]);
         }
     }
@@ -152,5 +151,14 @@ public class CardManager : MonoBehaviour
         if (newCard != null && newCardUI != null)
             activeCardUIs.Add(newCard, newCardUI);
         else Debug.Log("activeCardUIs 데이터 추가 실패");
+    }
+
+    public CardUI GetCardUI(RuntimeCard card)
+    {
+        if(card != null && activeCardUIs.ContainsKey(card))
+        {
+            return activeCardUIs[card];
+        }
+        return null;
     }
 }

@@ -1,17 +1,35 @@
-﻿using UnityEditor.Build.Content;
+﻿using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Player : MonoBehaviour, IDamageable
 {
     public static Player Instance { get; private set; }
-    public BuffSystem _buffSystem { get; private set; } 
+    public BuffSystem _buffSystem { get; private set; }
+    [Header("")]
+    public Image fillImage;
+    public TextMeshProUGUI healthText;
+    public TextMeshProUGUI nameText;
     [Header("Stats")]
     public int maxHp = 80;
-    public int currentHp;
+    private int currentHp;
     public int block;
     public int maxEnergy = 3;
     public int currentEnergy;
+    public int CurrentHp
+    {
+        get => currentHp;
+        set
+        {
+            // 0보다 작으면 0으로, 아니면 입력된 값 그대로 설정
+            currentHp = Mathf.Max(0, value);
 
+            if (currentHp <= 0)
+            {
+                //Die();   죽는로직 맨들기
+            }
+        }
+    }
     void Awake()
     {
         if (Instance == null)
@@ -22,10 +40,17 @@ public class Player : MonoBehaviour, IDamageable
         else Destroy(gameObject);
 
     }
-
+    private void UpdateHealthBar()
+    {
+        if (fillImage != null)
+        {
+            fillImage.fillAmount = (float)CurrentHp / maxHp;
+            healthText.text = currentHp.ToString() + "/" + maxHp.ToString();
+        }
+    }
     public void ResetStats()
     {
-        currentHp = maxHp;
+        CurrentHp = maxHp;
         block = 0;
         currentEnergy = maxEnergy;
     }
@@ -36,47 +61,43 @@ public class Player : MonoBehaviour, IDamageable
         block = 0;
     }
 
-    public void TakeDamage(int damage)
+    public void TakeDamage(int damage, int count = 1)
     {
-        if(block > 0)
+        for(int i = 0; i < count; i++)
         {
-            if (damage <= block)
+            if (block > 0)
             {
-                block -= damage;
-                damage = 0;
+                if (damage <= block)
+                {
+                    block -= damage;
+                    damage = 0;
+                }
+                else
+                {
+                    damage -= block;
+                    block = 0;
+                }
             }
-            else
-            {
-                damage -= block;
-                block = 0;
-            }
-        }
 
-        if (damage >0)
-        {
-            currentHp -= damage;
-            if(currentHp <= 0)
+            if (damage > 0)
             {
-                currentHp = 0;
-                //게임오버 구현하기
+                CurrentHp -= damage;
+                UpdateHealthBar();
             }
         }
     }
 
     public void TakeDirectDamage(int damage)
     {
-        currentHp -= damage;
-
-        if(currentHp <0)
-        {
-            currentHp = 0;
-            // 게임오버 구현
-        }
+        CurrentHp -= damage;
     }
 
-    public void AddBlock(int amount)
+    public void AddBlock(int amount, int count = 1)
     {
-        block += amount;
+        for (int i = 0; i < count; i++)
+        {
+            block += amount;
+        }
     }
 
     public void AddMaxEnergy(int amount)
@@ -84,10 +105,16 @@ public class Player : MonoBehaviour, IDamageable
         maxEnergy += amount;
     }
 
-    public void AddCurEnergy(int amount)
+    public void AddCurEnergy(int amount, int count = 1)
     {
-        currentEnergy += amount;
+        if (amount < 0) return;
+        for (int i = 0; i < count; i++)
+        {
+            currentEnergy += amount;
+        }
+        
     }
+
 
     public bool SpendEnergy(int amount)
     {

@@ -1,5 +1,4 @@
-﻿using UnityEditor.Profiling.Memory.Experimental;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {

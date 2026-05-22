@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-public static class DescriptionDatabase
+public static class DescriptionDatabase // 사실상 거의 필요없어짐 혹시모르니까 냅두기
 {
     private static readonly Dictionary<string, string> Templates = new Dictionary<string, string>
     {

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using JetBrains.Annotations;
 
 [System.Serializable]
-public class MonsterPatternData
+public class MonsterPatternData // 몬스터패턴 넘어갈때 다뜯어고쳐야함
 {
     [Tooltip("패턴의 이름 (강타, 저주 부르기)")]
     public string patternName;

@@ -23,11 +23,24 @@ public class Monster : MonoBehaviour, IDamageable
     [Header("[런타임 AI 패턴]")]
     private List<MonsterPatternData> runtimePatterns = new List<MonsterPatternData>();
     private int currentPatternIndex = 0;
+    public int CurrentHp
+    {
+        get => currentHp;
+        set
+        {
+            // 0보다 작으면 0으로, 아니면 입력된 값 그대로 설정
+            currentHp = Mathf.Max(0, value);
 
+            if (currentHp <= 0)
+            {
+                //Die();   죽는로직 맨들기
+            }
+        }
+    }
     private void Start()
     {
         // 씬에 직접 배치된 경우를 위한 예외 처리
-        if (OriginData != null && currentHp == 0)
+        if (OriginData != null && CurrentHp == 0)
         {
             SetupMonster(OriginData);
         }
@@ -39,7 +52,7 @@ public class Monster : MonoBehaviour, IDamageable
 
         monsterName = data.monsterName;
         maxHp = data.maxHp;
-        currentHp = maxHp;
+        CurrentHp = maxHp;
         currentBlock = 0;
 
         runtimePatterns = new List<MonsterPatternData>(data.patterns);
@@ -48,36 +61,31 @@ public class Monster : MonoBehaviour, IDamageable
         Debug.Log($"[Monster] '{monsterName}' 로드 완료. (HP: {maxHp})");
     }
 
-    public void TakeDamage(int damage)
+    public void TakeDamage(int damage, int count = 1)
     {
         int finalDamage = damage;
         if (finalDamage <= 0) return;
-
-        if (currentBlock > 0)
+        for (int i = 0; i < count; i++)
         {
-            if (currentBlock >= finalDamage)
+            if (currentBlock > 0)
             {
-                currentBlock -= finalDamage;
-                finalDamage = 0;
+                if (currentBlock >= finalDamage)
+                {
+                    currentBlock -= finalDamage;
+                    finalDamage = 0;
+                }
+                else
+                {
+                    finalDamage -= currentBlock;
+                    currentBlock = 0;
+                }
             }
-            else
+
+            if (finalDamage > 0)
             {
-                finalDamage -= currentBlock;
-                currentBlock = 0;
+                CurrentHp -= finalDamage;
+                UpdateHealthBar();
             }
-        }
-
-        if (finalDamage > 0)
-        {
-            currentHp = Mathf.Max(0, currentHp - finalDamage);
-            UpdateHealthBar();
-            Debug.Log($"[{monsterName}] 피격! 남은 체력: {currentHp}/{maxHp}");
-        }
-
-        // 3. 사망 체크
-        if (currentHp <= 0)
-        {
-            Die();
         }
     }
 
@@ -85,15 +93,14 @@ public class Monster : MonoBehaviour, IDamageable
     {
         if(fillImage != null)
         {
-            fillImage.fillAmount = (float)currentHp / maxHp;
-            healthText.text = currentHp.ToString() + "/" + maxHp.ToString();
+            fillImage.fillAmount = (float)CurrentHp / maxHp;
+            healthText.text = CurrentHp.ToString() + "/" + maxHp.ToString();
         }
     }
     private void Die()
     {
         Debug.Log($"[{monsterName}] 사망!");
 
-        // 배틀 매니저의 활성 리스트에서 자신을 제거
         if (BattleManager.Instance != null)
         {
             BattleManager.Instance.activeMonsters.Remove(this);
@@ -102,10 +109,12 @@ public class Monster : MonoBehaviour, IDamageable
         Destroy(gameObject);
     }
 
-    public void AddBlock(int value)
+    public void AddBlock(int value, int count = 1)
     {
-        if (value <= 0) return;
-        currentBlock += value;
+        for(int i  = 0; i < count; i++)
+        {
+            currentBlock += value;
+        }
     }
 
     public MonsterPatternData GetCurrentIntent()

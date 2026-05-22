@@ -49,6 +49,7 @@ public class CardUI : MonoBehaviour, IPointerClickHandler
         }
         if (nameText != null) nameText.text = TargetRuntimeCard.OriginData.cardName;
         if (descText != null) descText.text = TargetRuntimeCard.GetDescription(DescriptionType.Default,target);
+        if (typeText != null) typeText.text = TargetRuntimeCard.OriginData.GetCardType().ToString();
     }
 
     /// <summary>
@@ -56,6 +57,7 @@ public class CardUI : MonoBehaviour, IPointerClickHandler
     /// </summary>
     public void OnPointerClick(PointerEventData eventData)
     {
+
         // 좌클릭 시에만 인풋 매니저에게 나를 선택해달라고 요청
         if (eventData.button == PointerEventData.InputButton.Left)
         {
@@ -64,6 +66,7 @@ public class CardUI : MonoBehaviour, IPointerClickHandler
                 InputManager.Instance.TrySelectCard(this);
             }
         }
+
     }
 
     /// <summary>

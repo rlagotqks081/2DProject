@@ -1,10 +1,11 @@
 ﻿using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.InputSystem.XR;
 using static UnityEngine.GraphicsBuffer;
 
 public class BattleManager : MonoBehaviour
 {
-    // --- 싱글톤 설정 ---
     public static BattleManager Instance { get; private set; }
 
     // 필드에 존재하는 활성화된 몬스터들을 관리하는 리스트
@@ -15,7 +16,6 @@ public class BattleManager : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject);
         }
         else
         {
@@ -31,23 +31,22 @@ public class BattleManager : MonoBehaviour
     {
         RuntimeCard runtimeCard = targetCard.TargetRuntimeCard;
         if (runtimeCard == null) return false;
+        int requiredCost;
 
         if (!runtimeCard.CanUse(out string failReason))
         {
             Debug.LogWarning($"[배틀] 카드 사용 실패: {failReason}");
             return false;
         }
+        if (CardCalculator.IsSpendingAllCosts(runtimeCard)) requiredCost = Player.Instance.currentEnergy;
+        else requiredCost = runtimeCard.GetCalculatedCost();
 
-        // --- 검사 통과: 에너지 차감 및 효과 집행 ---
-        int requiredCost = runtimeCard.GetCalculatedCost();
         Player.Instance.currentEnergy -= requiredCost;
 
         Debug.Log($"[배틀] {runtimeCard.OriginData.cardName} 사용 성공! 코스트 {requiredCost} 소모.");
 
-        // 규칙 연산기 가동 (OnPlay 트리거 효과 집행)
         ExecuteCardTriggerEffects(runtimeCard, CardTriggerType.OnPlay, targetMonster);
 
-        // 물리적 카드 배송은 CardManager에게 전권 위임 (쌍둥이 카드 버그 완벽 방지)
         if (runtimeCard.OriginData.isExhaust)
         {
             CardManager.Instance.UseCardToExhaust(runtimeCard);
@@ -72,10 +71,9 @@ public class BattleManager : MonoBehaviour
         StartMonsterTurn();
     }
 
-
+    // 만들다가 말았음(최신화 해야함)
     private void StartMonsterTurn()
     {
-        Debug.Log("[배틀] 몬스터 턴 시작!");
         GameObject playerObj = Player.Instance.gameObject;
 
         // 필드에 살아있는 모든 몬스터를 순회하며 예약된 행동 실행
@@ -86,7 +84,6 @@ public class BattleManager : MonoBehaviour
             MonsterPatternData pattern = monster.GetCurrentIntent();
             if (pattern == null) continue;
 
-            Debug.Log($"[몬스터 행동] {monster.monsterName}이(가) '{pattern.patternName}' 시전!");
 
             switch (pattern.actionType)
             {
@@ -118,7 +115,6 @@ public class BattleManager : MonoBehaviour
 
     private void StartPlayerTurn()
     {
-        Debug.Log("[배틀] 플레이어 턴 복귀. 드로우 및 에너지 충전.");
         // Player.Instance.RestoreEnergyToMax();
         CardManager.Instance.DrawCards(5);
     }
@@ -169,23 +165,24 @@ public class BattleManager : MonoBehaviour
                 case CardEffectType.Block_Use_AllCost:
                     finalValue = CardCalculator.BlockCalculate(runtimeCard, effect);
                     break;
+                case CardEffectType.GetCost:
+                    finalValue = CardCalculator.GetBaseDamage(runtimeCard, effect);
+                    break;
             }
 
 
             //최종 계산된 가공 수치와 횟수만큼 인게임 효과 실행
-            for (int i = 0; i < finalExecuteCount; i++)
-            {
-                ApplyEffect(effect.GetEffectType(), actualTarget, finalValue, effect);
-            }
+            ApplyEffect(effect.GetEffectType(), actualTarget, finalValue, finalExecuteCount, effect);
+
         }
     }
 
     /// <summary>
     /// 최종처리가 끝난 데이터를 기반으로 카드의 효과를 실행
     /// </summary>
-    private void ApplyEffect(CardEffectType type, GameObject target, int value, CardEffect effect)
+    private void ApplyEffect(CardEffectType type, GameObject target, int value, int executeCount, CardEffect effect)
     {
-        if (target == null && effect.GetTarget() != EffectTarget.AllEnemy) return;
+        if (target == null && effect.GetTarget() == EffectTarget.Target) return;
 
 
         switch (type)
@@ -197,19 +194,19 @@ public class BattleManager : MonoBehaviour
                 {
                     foreach(Monster targets in activeMonsters)
                     {
-                        targets.TakeDamage(CardCalculator.VulnerableCalculate(value, BuffManager.Instance.IsObjHasBuff(targets.gameObject,BuffType.Vulnerable)));
+                        targets.TakeDamage(CardCalculator.VulnerableCalculate(value, BuffManager.Instance.IsObjHasBuff(targets.gameObject, BuffType.Vulnerable)), executeCount);
                     }
                     break;
                 }
                 IDamageable damageable = target.GetComponent<IDamageable>();
                 if (damageable != null)
                 {
-                    damageable.TakeDamage(CardCalculator.VulnerableCalculate(value,BuffManager.Instance.IsObjHasBuff(target,BuffType.Vulnerable)));
+                    damageable.TakeDamage(CardCalculator.VulnerableCalculate(value,BuffManager.Instance.IsObjHasBuff(target,BuffType.Vulnerable)), executeCount);
                 }
                 break;
             case CardEffectType.Block_Use_AllCost:
             case CardEffectType.Block:
-                Player.Instance.AddBlock(value);
+                Player.Instance.AddBlock(value, executeCount);
                 break;
             case CardEffectType.GetBuff:
             case CardEffectType.ApplyBuff:
@@ -217,18 +214,40 @@ public class BattleManager : MonoBehaviour
                 {
                     foreach(Monster targets in activeMonsters)
                     {
-                        BuffManager.Instance.ApplyBuff(targets.gameObject, effect.GetBuffType(), value);
+                        BuffManager.Instance.ApplyBuff(targets.gameObject, effect.GetBuffType(), value, executeCount);
                     }
                     break;
                 }
-                BuffManager.Instance.ApplyBuff(target, effect.GetBuffType(), value);
+                BuffManager.Instance.ApplyBuff(target, effect.GetBuffType(), value, executeCount);
                 break;
             case CardEffectType.DrawCard:
-                CardManager.Instance.DrawCards(value);
+                CardManager.Instance.DrawCards(value, executeCount);
                 break;
             case CardEffectType.DiscardCard:
-                // 카드 선택해서/랜덤으로 버리는 로직 짜기 @@
-                // 버려지는게 트리거인 카드들 실행시키기
+                // 카드 랜덤으로 버리는 로직 짜기 @@
+                if(effect.GetTarget() == EffectTarget.Random)
+                {
+                    // 랜덤카드 버리기 효과 실행
+                }
+                else
+                {
+                    InputManager.Instance.StartSelectingMultipleCards(value, (list) =>
+                    {
+                        if(list != null)
+                        {
+                            foreach (RuntimeCard card in list)
+                            {
+                                CardManager.Instance.GetCardUI(card);
+                                if (card == null) continue;
+                                CardManager.Instance.DiscardFromHand(card);
+                            }
+                        }
+                    });
+                }
+                    
+                break;
+            case CardEffectType.GetCost:
+                Player.Instance.AddCurEnergy(value, executeCount);
                 break;
         }
     }

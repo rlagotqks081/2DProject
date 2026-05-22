@@ -39,7 +39,6 @@ public class HandManager : MonoBehaviour
     {
         GameObject newCardObj;
 
-        // 1. 해당 런타임카드의 CardUI가 있는지 확인
         if(CardManager.Instance.activeCardUIs.ContainsKey(cardData))
         {
             newCardObj = CardManager.Instance.activeCardUIs[cardData].gameObject;
@@ -48,12 +47,10 @@ public class HandManager : MonoBehaviour
         }
         else
         {
-            // 프리팹 생성
             newCardObj = Instantiate(cardPrefab, handLayoutGroup);
             CardUI newCardUI = newCardObj.GetComponent<CardUI>();
             CardManager.Instance.AddCardUIDic(cardData, newCardUI);
 
-            // 데이터 연동 
             newCardUI.SetupUI(cardData);
         }
 
@@ -63,7 +60,7 @@ public class HandManager : MonoBehaviour
             newCardObj.transform.localScale = Vector3.zero;
             newCardObj.transform.DOScale(Vector3.one, 0.3f).SetEase(Ease.OutBack);
         }
-        // 5. 손패 정렬 로직 호출 
+        newCardObj.transform.SetAsLastSibling();
         AlignCards();
     }
 
