@@ -56,11 +56,11 @@ public class HandManager : MonoBehaviour
 
         if (newCardObj != null)
         {
+            newCardObj.GetComponent<CardUIEffect>().SetSelectedState(false);
             handCardUIs.Add(newCardObj);
             newCardObj.transform.localScale = Vector3.zero;
             newCardObj.transform.DOScale(Vector3.one, 0.3f).SetEase(Ease.OutBack);
         }
-        newCardObj.transform.SetAsLastSibling();
         AlignCards();
     }
 
@@ -77,13 +77,16 @@ public class HandManager : MonoBehaviour
 
         for(int i = 0; i < cardCount; i++)
         {
+            RectTransform transform = handCardUIs[i].GetComponent<RectTransform>();
             float offset = i - midindex;
             float posX = offset * cardSpacing;
             float posY = offset * offset * arcIntensity + 150f;
             float rotZ = -offset * rotationIntensity;
-            
-            handCardUIs[i].GetComponent<RectTransform>().localPosition = new Vector3(posX, posY, 0f);
-            handCardUIs[i].GetComponent<RectTransform>().localRotation = Quaternion.Euler(0f, 0f, rotZ);
+
+            transform.SetAsLastSibling();
+            handCardUIs[i].GetComponent<CardUIEffect>().UpdateOriginalTransformIndex();
+            transform.localPosition = new Vector3(posX, posY, 0f);
+            transform.localRotation = Quaternion.Euler(0f, 0f, rotZ);
             handCardUIs[i].GetComponent<CardUIEffect>().UpdateOriginalPosition();
             handCardUIs[i].GetComponent<CardUI>().UpdateUI();
         }

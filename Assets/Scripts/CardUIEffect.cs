@@ -41,7 +41,8 @@ public class CardUIEffect : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
 
         transform.DOKill();
 
-        originalTransformIndex = transform.GetSiblingIndex();
+        UpdateOriginalTransformIndex();
+
         transform.SetAsLastSibling(); // UI를 맨 앞으로 보내서 가려지지 않게 처리
 
         transform.DOScale(originalScale * hoverScale, duration).SetEase(Ease.OutCubic);
@@ -94,5 +95,10 @@ public class CardUIEffect : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
     {
         originalPosition = transform.localPosition;
         originalRotation = transform.localRotation;
+    }
+
+    public void UpdateOriginalTransformIndex()
+    {
+        originalTransformIndex = transform.GetSiblingIndex();
     }
 }

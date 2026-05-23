@@ -5,6 +5,7 @@ public class CardManager : MonoBehaviour
 {
     public static CardManager Instance { get; private set; }
 
+    [Header("dtd")]
     // 드로우할 카드가 있는 파일
     public List<RuntimeCard> DrawPile {  get; private set; } = new List<RuntimeCard>();
     // 내 손에 있는 카드가 있는 파일
@@ -26,10 +27,10 @@ public class CardManager : MonoBehaviour
     public void TestSetup()
     {
         AddCardOnDeck(1004);
+        AddCardOnDeck(1012);
         AddCardOnDeck(1005);
         AddCardOnDeck(1007);
         AddCardOnDeck(1011);
-        AddCardOnDeck(1012);
         AddCardOnDeck(1013);
         SetupCards();
     }
@@ -117,9 +118,10 @@ public class CardManager : MonoBehaviour
         if (HandPile.Contains(card))
         {
             HandPile.Remove(card);
+            HandManager.Instance.RemoveCardFromHand(activeCardUIs[card]);
             BattleManager.Instance.ExecuteCardTriggerEffects(card, CardTriggerType.OnDiscard);
             DiscardPile.Add(card);
-            HandManager.Instance.RemoveCardFromHand(activeCardUIs[card]);
+
         }
     }
 

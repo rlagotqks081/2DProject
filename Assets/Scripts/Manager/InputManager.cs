@@ -235,8 +235,6 @@ public class InputManager : MonoBehaviour
             {
                 selectedCardUI.OnCardUsed(hoverTarget.gameObject);
                 CancelSelection();
-                selectedCardUI = null;
-                hoverTarget = null;
                 UpdateCurrentState(InputState.None);
             }
         }
