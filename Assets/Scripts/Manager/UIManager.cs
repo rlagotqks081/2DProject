@@ -7,6 +7,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] private GameObject cardSelectUI;
 
     public Button confirmButton; // 인스펙터에서 버튼 할당
+    public Button endTurnButton;
     private void Awake()
     {
         {

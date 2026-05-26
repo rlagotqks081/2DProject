@@ -21,7 +21,7 @@ public class Monster : MonoBehaviour, IDamageable
     public int currentBlock;
 
     [Header("[런타임 AI 패턴]")]
-    private List<MonsterPatternData> runtimePatterns = new List<MonsterPatternData>();
+    private List<MonsterPatternData> runtimePatterns;
     private int currentPatternIndex = 0;
     public int CurrentHp
     {

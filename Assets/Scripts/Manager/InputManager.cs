@@ -1,4 +1,5 @@
 ﻿using DG.Tweening;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -6,18 +7,18 @@ using static UnityEngine.GraphicsBuffer;
 
 public enum InputState
 {
-    None,
+    Idle,
     SelectingTarget,
     SelectingCard,
-    SelectedSkillCard
+    SelectedSkillCard,
+    Processing
 }
 
 public class InputManager : MonoBehaviour
 {
     public static InputManager Instance { get; private set; }
-
     [Header("현재 입력 상태")]
-    public InputState currentState = InputState.None;
+    public InputState currentState = InputState.Idle;
 
     [Header("레이캐스트 설정")]
     [SerializeField] private LayerMask targetLayer;
@@ -33,6 +34,16 @@ public class InputManager : MonoBehaviour
 
     [Header("선택된 카드 UI 정렬 설정")]
     [SerializeField] private float cardSpacing = 220f;
+    public event Action<RuntimeCard> OnCardClicked;
+
+
+
+    // 여기서부터 갈아엎으면서 만든거
+    public event Action OnLeftClick;
+    public event Action OnRightClick;
+    public LayerMask monsterLayer;
+    int requiredCount;
+    private bool isMandatory;
 
     private void Awake()
     {
@@ -51,31 +62,58 @@ public class InputManager : MonoBehaviour
 
     private void Update()
     {
-        switch(currentState)
+        if (Input.GetMouseButtonDown(0))
         {
-            case InputState.None:
-                break;
-            case InputState.SelectingTarget:
-                UpdateHoverTarget();
-                HandleTargetSelection();
+            // 타겟팅 중이면 몬스터 레이캐스트 확인
+            if (currentState == InputState.SelectingTarget)
+            {
+                Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+                RaycastHit hit;
+                if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit, 100f, monsterLayer))
+                {
+                    Monster m = hit.collider.GetComponent<Monster>();
+                    if (m != null) BattleManager.Instance.SelectTarget(m);
+                }
+            }
+            else
+            {
+                OnLeftClick?.Invoke();
+            }
+        }
+
+        if (Input.GetMouseButtonDown(1)) OnRightClick?.Invoke();
+    }
+    public void HandleCardClick(RuntimeCard card)
+    {
+        switch (currentState)
+        {
+            case InputState.Idle:
+                BattleManager.Instance.PlayCardRoutine(card);
                 break;
             case InputState.SelectingCard:
+                ToggleCardSelection(CardManager.Instance.GetCardUI(card));
                 break;
-            case InputState.SelectedSkillCard:
-                HandleMousePosition();
+            case InputState.SelectingTarget:
+            case InputState.Processing:
+                Debug.Log("현재 카드를 클릭할 수 없는 상태입니다.");
                 break;
         }
+
+        OnCardClicked?.Invoke(card);
     }
-    public void StartSelectingMultipleCards(int maxSelectCount, System.Action<List<RuntimeCard>> onConfirmed)
+
+    public void StartSelectingMultipleCards(int maxSelectCount, Action<List<RuntimeCard>> onConfirmed, bool isMandatory = true)
     {
-        this.maxSelectCount = maxSelectCount;
         currentState = InputState.SelectingCard;
-        UIManager.Instance.ShowCardSelectUI(true);
-
+        this.isMandatory = isMandatory;
+        requiredCount = maxSelectCount;
         selectedCards.Clear();
-        selectedCardsUI.Clear();
-        onSelectionConfirmed = onConfirmed;
 
+        // 이 Action이 나중에 BattleManager의 tcs.SetResult를 호출
+        this.onSelectionConfirmed = onConfirmed;
+
+        // 확인 버튼 활성화
+        confirmButton.gameObject.SetActive(true);
 
     }
 
@@ -106,7 +144,6 @@ public class InputManager : MonoBehaviour
             cardUIEffect.SetSelectedState(false);
             selectedCardsUI.Remove(cardUI);
             cardUIEffect.ResetToOriginalState();
-            CheckSelectionLimit();
         }
         else
         {
@@ -116,7 +153,6 @@ public class InputManager : MonoBehaviour
             cardUIEffect.SetSelectedState(true);
             cardUIEffect.ResetRotation();
             selectedCardsUI.Add(cardUI);
-            CheckSelectionLimit();
         }
         AlignSelectedCards(); 
     }
@@ -133,52 +169,7 @@ public class InputManager : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// SelectingCard 진행중 확인버튼을 누르면 실행되는 함수
-    /// </summary>
-    public void ConfirmSelection()
-    {
-        if (selectedCards.Count == 0) return;
-        onSelectionConfirmed?.Invoke(new List<RuntimeCard>(selectedCards));
 
-        // 초기화
-        foreach (var cardUI in selectedCardsUI) cardUI.GetComponent<CardUIEffect>().ResetToOriginalState();
-        UIManager.Instance.ShowCardSelectUI(false);
-        currentState = InputState.None;
-    }
-
-    public void CheckSelectionLimit()
-    {
-        bool canConfirm = selectedCards.Count == maxSelectCount;
-
-        UIManager.Instance.SetConfirmButtonInteractable(canConfirm);
-    }
-
-    /// <summary>
-    /// CardUI 스크립트에서 클릭 이벤트(IPointerClickHandler 등)를 받았을 때 
-    /// 인풋 매니저에게 나를 사용해달라고 요청하는 함수
-    /// </summary>
-    public void TrySelectCard(CardUI card)
-    {
-        switch(currentState)
-        {
-            case InputState.None:
-                selectedCardUI = card;
-                if (card.TargetRuntimeCard.GetCardEffectTarget() == EffectTarget.Target)
-                {
-                    UpdateCurrentState(InputState.SelectingTarget);
-                    Debug.Log($"[InputManager] 카드 선택됨: {card.name}. 타겟을 선택하세요.");
-                }
-                else UpdateCurrentState(InputState.SelectedSkillCard);
-                selectedCardUI.GetComponent<CardUIEffect>().ResetRotation();
-                break;
-            case InputState.SelectingCard:
-                ToggleCardSelection(card);
-                break;
-        }
-
-
-    }
     private void UpdateHoverTarget()
     {
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
@@ -214,12 +205,6 @@ public class InputManager : MonoBehaviour
     /// </summary>
     private void HandleTargetSelection()
     {
-        if (selectedCardUI == null)
-        {
-            hoverTarget = null;
-            UpdateCurrentState(InputState.None);
-            return;
-        }
         if (Input.GetMouseButtonDown(1))
         {
             CancelSelection();
@@ -277,10 +262,6 @@ public class InputManager : MonoBehaviour
     /// </summary>
     public void CancelSelection()
     {
-        if (currentState == InputState.None) return;
-
-        Debug.Log("[InputManager] 카드 선택이 취소되었습니다.");
-
         if (hoverTarget != null)
         {
             OnTargetExit(hoverTarget);
@@ -298,7 +279,7 @@ public class InputManager : MonoBehaviour
 
         // 변수 및 상태 초기화
         selectedCardUI = null;
-        UpdateCurrentState(InputState.None);
+        UpdateCurrentState(InputState.Idle);
         HandManager.Instance.AlignCards();
     }
 }

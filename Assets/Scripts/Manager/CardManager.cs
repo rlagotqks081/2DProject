@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
 
 public class CardManager : MonoBehaviour
@@ -69,12 +70,14 @@ public class CardManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 손에있는 모든카드를 버릴때 호출
+    /// 손에있는 모든카드를 버릴때 호출 - 턴종료시
     /// </summary>
-    public void DiscardAllCards()
+    public IEnumerator DiscardAllCards()
     {
-        foreach(RuntimeCard card in HandPile)
+        List<RuntimeCard> tempCards = new List<RuntimeCard>(HandPile);
+        foreach(RuntimeCard card in tempCards)
         {
+            yield return new WaitForSeconds(0.1f);
             if(HandPile.Contains(card))
             {
                 HandPile.Remove(card);
@@ -82,8 +85,23 @@ public class CardManager : MonoBehaviour
                 HandManager.Instance.RemoveCardFromHand(activeCardUIs[card]);
             }
         }
+        yield break;
     }
-    
+    public void RemoveCardFromHand(RuntimeCard card)
+    {
+        if (HandPile.Contains(card))
+        {
+            HandPile.Remove(card);
+        }
+    }
+    public void AddCardToDiscard(RuntimeCard card)
+    {
+        if(!DiscardPile.Contains(card))
+        {
+            DiscardPile.Add(card);
+            HandManager.Instance.RemoveCardFromHand(activeCardUIs[card]);
+        }
+    }
     /// <summary>
     /// 카드를 정상적으로 사용해서 해당 카드를 버릴때 호출
     /// </summary>

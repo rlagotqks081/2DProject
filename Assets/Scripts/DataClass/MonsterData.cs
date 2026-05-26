@@ -3,18 +3,23 @@ using System.Collections.Generic;
 using JetBrains.Annotations;
 
 [System.Serializable]
+public class MonsterEffect
+{
+    [Tooltip("효과 종류")]
+    public MonsterActionType effectType;
+    [Tooltip("수치 (데미지량, 회복량, 버프량 등)")]
+    public int value;
+    [Tooltip("버프/디버프 종류")]
+    public BuffType buffType;
+    [Tooltip("실행 횟수")]
+    public int executeCount;
+}
+
+[System.Serializable]
 public class MonsterPatternData // 몬스터패턴 넘어갈때 다뜯어고쳐야함
 {
-    [Tooltip("패턴의 이름 (강타, 저주 부르기)")]
-    public string patternName;
-    [Tooltip("행동 종류 ( 공격, 방어 버프, 디버프)")]
-    public MonsterActionType actionType;
-    [Tooltip("공격/방어/버프/디버프의 기본 수치")]
-    public int value;
-    [Tooltip("연타 횟수( 공격일때만 )")]
-    public int attackCount = 1;
-    [Tooltip("버프/디버프 부여할 종류")]
-    public BuffType targetBuffType;
+    [Tooltip("한 번에 실행될 효과들의 리스트")]
+    public List<MonsterEffect> effects = new List<MonsterEffect>();
 }
 
 public enum MonsterActionType

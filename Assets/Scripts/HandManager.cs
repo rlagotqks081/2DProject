@@ -100,8 +100,12 @@ public class HandManager : MonoBehaviour
         GameObject cardObj = cardUI.gameObject;
         if (handCardUIs.Contains(cardObj))
         {
+            cardObj.transform.DOScale(Vector3.zero, 0.3f).SetEase(Ease.InBack).OnComplete(() =>
+            {
+                cardObj.SetActive(false);
+            });
             handCardUIs.Remove(cardObj);
-            cardObj.SetActive(false);
+            
             AlignCards();   
         }
     }
