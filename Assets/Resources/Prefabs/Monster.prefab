@@ -111,7 +111,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5d0e9460e36ad274d8d2bfcbdf596e3a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Monster
-  _buffSystem: {fileID: 8719691154082221587}
   fillImage: {fileID: 1085736198877175701}
   healthText: {fileID: 5476438491017409537}
   nameText: {fileID: 4870319206468260922}
@@ -475,7 +474,7 @@ MonoBehaviour:
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
   m_DynamicPixelsPerUnit: 1
-  m_PresetInfoIsWorld: 1
+  m_PresetInfoIsWorld: 0
 --- !u!114 &4831251386243050989
 MonoBehaviour:
   m_ObjectHideFlags: 0

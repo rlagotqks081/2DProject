@@ -92,6 +92,7 @@ public class CardManager : MonoBehaviour
         if (HandPile.Contains(card))
         {
             HandPile.Remove(card);
+            HandManager.Instance.RemoveCardFromHand(activeCardUIs[card]);
         }
     }
     public void AddCardToDiscard(RuntimeCard card)
@@ -99,7 +100,6 @@ public class CardManager : MonoBehaviour
         if(!DiscardPile.Contains(card))
         {
             DiscardPile.Add(card);
-            HandManager.Instance.RemoveCardFromHand(activeCardUIs[card]);
         }
     }
     /// <summary>
@@ -137,7 +137,7 @@ public class CardManager : MonoBehaviour
         {
             HandPile.Remove(card);
             HandManager.Instance.RemoveCardFromHand(activeCardUIs[card]);
-            BattleManager.Instance.ExecuteCardTriggerEffects(card, CardTriggerType.OnDiscard);
+            StartCoroutine(BattleManager.Instance.ExecuteCardTriggerEffects(card, CardTriggerType.OnDiscard));
             DiscardPile.Add(card);
 
         }

@@ -178,6 +178,7 @@ MonoBehaviour:
   hoverScale: 1.2
   hoverMoveY: 100
   duration: 0.2
+  isSelected: 0
 --- !u!114 &5530020903846022112
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -196,6 +197,7 @@ MonoBehaviour:
   costText: {fileID: 4053748238913263881}
   descText: {fileID: 56015281402559107}
   typeText: {fileID: 7833502586575225373}
+  rectTransform: {fileID: 6843374699783981977}
 --- !u!1 &5892955912048274179
 GameObject:
   m_ObjectHideFlags: 0

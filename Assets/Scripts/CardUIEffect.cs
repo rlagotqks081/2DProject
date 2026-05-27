@@ -11,7 +11,7 @@ public class CardUIEffect : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
     [SerializeField] private float duration = 0.2f;
 
     private Vector3 originalPosition;
-    private Vector3 originalScale;
+    private Vector3 originalScale = Vector3.one;
     private Quaternion originalRotation;
     private int originalTransformIndex;
     public bool isSelected = false;
@@ -20,10 +20,7 @@ public class CardUIEffect : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
     {
         UpdateOriginalPosition();
     }
-    public void OnEnable()
-    {
-        originalScale = transform.localScale;
-    }
+
     public void SetSelectedState(bool selected)
     {
         isSelected = selected;

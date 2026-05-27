@@ -15,6 +15,8 @@ public class CardUI : MonoBehaviour, IPointerClickHandler
     [SerializeField] private TextMeshProUGUI costText;    // 마나 비용
     [SerializeField] private TextMeshProUGUI descText;    // 카드 설명
     [SerializeField] private TextMeshProUGUI typeText;    // 카드 종류
+    [SerializeField] public RectTransform rectTransform;    
+
 
 
     [ContextMenu("CardUpgradeTest")]
@@ -69,17 +71,5 @@ public class CardUI : MonoBehaviour, IPointerClickHandler
 
     }
 
-    /// <summary>
-    /// 카드가 최종적으로 사용되었을 때 호출 (사용성공 true / 실패 false 리턴)
-    /// </summary>
-    public bool OnCardUsed(GameObject targetMonster = null)
-    {
-        // 1. 배틀 매니저에게 내 데이터와 타겟 정보를 던짐
-        if (BattleManager.Instance != null)
-        {
-            return BattleManager.Instance.PlayerUseCard(this, targetMonster);
-        }
-        return false;
 
-    }
 }

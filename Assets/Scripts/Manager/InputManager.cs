@@ -41,8 +41,6 @@ public class InputManager : MonoBehaviour
     // 여기서부터 갈아엎으면서 만든거
     public event Action OnLeftClick;
     public event Action OnRightClick;
-    public LayerMask monsterLayer;
-    int requiredCount;
     private bool isMandatory;
 
     private void Awake()
@@ -62,16 +60,42 @@ public class InputManager : MonoBehaviour
 
     private void Update()
     {
+        switch(currentState)
+        {
+            case InputState.SelectingTarget:
+                UpdateHoverTarget();
+                HandleTargetSelection();
+                break;
+            case InputState.SelectedSkillCard:
+                if (Input.GetMouseButtonDown(0)) OnLeftClick?.Invoke();
+                if (Input.GetMouseButtonDown(1)) OnRightClick?.Invoke();
+                break;
+        }
+    }
+    private void UpdateHoverTarget()
+    {
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        RaycastHit2D hit = Physics2D.GetRayIntersection(ray, Mathf.Infinity, targetLayer);
+
+        Monster foundMonster = (hit.collider != null) ? hit.collider.GetComponent<Monster>() : null;
+
+        // 타겟이 바뀌었을 때만 이벤트 처리 (이전 타겟 해제, 새 타겟 하이라이트 등)
+        if (hoverTarget != foundMonster)
+        {
+            if (hoverTarget != null) OnTargetExit(hoverTarget);
+            hoverTarget = foundMonster;
+            if (hoverTarget != null) OnTargetEnter(hoverTarget);
+        }
+    }
+    private void HandleTargetSelection()
+    {
         if (Input.GetMouseButtonDown(0))
         {
-            // 타겟팅 중이면 몬스터 레이캐스트 확인
             if (currentState == InputState.SelectingTarget)
             {
-                Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                RaycastHit hit;
-                if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit, 100f, monsterLayer))
+                if (hoverTarget != null)
                 {
-                    Monster m = hit.collider.GetComponent<Monster>();
+                    Monster m = hoverTarget;
                     if (m != null) BattleManager.Instance.SelectTarget(m);
                 }
             }
@@ -83,12 +107,15 @@ public class InputManager : MonoBehaviour
 
         if (Input.GetMouseButtonDown(1)) OnRightClick?.Invoke();
     }
+
     public void HandleCardClick(RuntimeCard card)
     {
         switch (currentState)
         {
             case InputState.Idle:
-                BattleManager.Instance.PlayCardRoutine(card);
+                UpdateCurrentState(InputState.Processing);
+                selectedCardUI = CardManager.Instance.GetCardUI(card);
+                StartCoroutine(BattleManager.Instance.PlayCardRoutine(card));
                 break;
             case InputState.SelectingCard:
                 ToggleCardSelection(CardManager.Instance.GetCardUI(card));
@@ -99,21 +126,39 @@ public class InputManager : MonoBehaviour
                 break;
         }
 
-        OnCardClicked?.Invoke(card);
+    }
+
+    public void OnConfirmButtonClicked()
+    {
+        var result = new List<RuntimeCard>(selectedCards);
+
+        // 2. 선택된 카드들의 하이라이트 효과 해제 (깨끗한 상태로 복귀)
+
+
+        onSelectionConfirmed?.Invoke(result);
+
+        // 4. UI 및 상태 초기화
+        selectedCards.Clear();
+        UIManager.Instance.confirmButton.gameObject.SetActive(false);
+        UIManager.Instance.SetConfirmButtonInteractable(false);
+        UIManager.Instance.ShowCardSelectUI(false);
+        currentState = InputState.Idle;            // 상태를 기본으로 복귀
     }
 
     public void StartSelectingMultipleCards(int maxSelectCount, Action<List<RuntimeCard>> onConfirmed, bool isMandatory = true)
     {
         currentState = InputState.SelectingCard;
         this.isMandatory = isMandatory;
-        requiredCount = maxSelectCount;
+        this.maxSelectCount = maxSelectCount;
         selectedCards.Clear();
+        selectedCardsUI.Clear();
+        UIManager.Instance.ShowCardSelectUI(true);
 
         // 이 Action이 나중에 BattleManager의 tcs.SetResult를 호출
         this.onSelectionConfirmed = onConfirmed;
 
-        // 확인 버튼 활성화
-        confirmButton.gameObject.SetActive(true);
+        UIManager.Instance.confirmButton.gameObject.SetActive(true);
+        UIManager.Instance.SetConfirmButtonInteractable(false);
 
     }
 
@@ -123,10 +168,6 @@ public class InputManager : MonoBehaviour
     /// <param name="state"></param>
     public void UpdateCurrentState(InputState state)
     {
-        if(currentState == InputState.SelectingCard)
-        {
-            return;
-        }
         currentState = state;
     }
 
@@ -154,7 +195,23 @@ public class InputManager : MonoBehaviour
             cardUIEffect.ResetRotation();
             selectedCardsUI.Add(cardUI);
         }
-        AlignSelectedCards(); 
+
+        if(isMandatory)
+        {
+            if(selectedCards.Count == maxSelectCount)
+            {
+                UIManager.Instance.SetConfirmButtonInteractable(true);
+            }
+            else if (selectedCards.Count < maxSelectCount)
+            {
+                UIManager.Instance.SetConfirmButtonInteractable(false);
+            }
+        }
+        else 
+        {
+            UIManager.Instance.SetConfirmButtonInteractable(true);
+        }
+            AlignSelectedCards(); 
     }
 
     private void AlignSelectedCards()
@@ -170,22 +227,6 @@ public class InputManager : MonoBehaviour
     }
 
 
-    private void UpdateHoverTarget()
-    {
-        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        RaycastHit2D hit = Physics2D.GetRayIntersection(ray, Mathf.Infinity, targetLayer);
-
-        Monster foundMonster = (hit.collider != null) ? hit.collider.GetComponent<Monster>() : null;
-
-        // 타겟이 바뀌었을 때만 이벤트 처리 (이전 타겟 해제, 새 타겟 하이라이트 등)
-        if (hoverTarget != foundMonster)
-        {
-            if (hoverTarget != null) OnTargetExit(hoverTarget);
-            hoverTarget = foundMonster;
-            if (hoverTarget != null) OnTargetEnter(hoverTarget);
-        }
-    }
-
     private void OnTargetEnter(Monster monster)
     {
         // 여기서 몬스터의 하이라이트 효과를 켜는 함수 호출
@@ -200,61 +241,6 @@ public class InputManager : MonoBehaviour
         selectedCardUI.UpdateUI();
         monster.SetHighlight(false);   // 이것도;
     }
-    /// <summary>
-    /// Target이 필요한 카드 사용시에만 실행됨 - 타겟(몬스터)을 조준하고 클릭하거나 취소하는 로직
-    /// </summary>
-    private void HandleTargetSelection()
-    {
-        if (Input.GetMouseButtonDown(1))
-        {
-            CancelSelection();
-            return;
-        }
-
-        if(Input.GetMouseButtonDown(0))
-        {
-            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            RaycastHit2D hit = Physics2D.GetRayIntersection(ray, Mathf.Infinity, targetLayer);
-
-            if (hoverTarget != null) 
-            {
-                selectedCardUI.OnCardUsed(hoverTarget.gameObject);
-                CancelSelection();
-                UpdateCurrentState(InputState.None);
-            }
-        }
-    }
-
-    /// <summary>
-    /// 타겟이 필요없는 카드를 사용시 실행됨 - 마우스를 카드가 따라가게 하는 함수
-    /// </summary>
-    private void HandleMousePosition()
-    {
-        if(selectedCardUI == null)
-        {
-            hoverTarget = null;
-            UpdateCurrentState(InputState.None);
-            return;
-        }
-
-        Vector3 mousePosition = Input.mousePosition;
-        selectedCardUI.GetComponent<CardUIEffect>().MoveCardPosition(mousePosition);
-
-        if (Input.GetMouseButtonDown(1))
-        {
-            CancelSelection();
-            return;
-        }
-
-        if (Input.GetMouseButtonDown(0))
-        {
-            // if (EventSystem.current.IsPointerOverGameObject()) return;
-
-            selectedCardUI.OnCardUsed();
-            CancelSelection();
-        }
-    }
-
 
 
     /// <summary>

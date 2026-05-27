@@ -44,7 +44,7 @@ public class TurnManager : MonoBehaviour
         // 3. 적 턴으로 전환 (필요 시)
         // yield return StartCoroutine(EnemyTurnRoutine());
 
-        InputManager.Instance.UpdateCurrentState(InputState.None);
+        InputManager.Instance.UpdateCurrentState(InputState.Idle);
         endTurnButton.interactable = true;
     }
 

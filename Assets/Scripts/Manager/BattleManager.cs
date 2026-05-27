@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class BattleManager : MonoBehaviour
@@ -30,28 +31,9 @@ public class BattleManager : MonoBehaviour
             Destroy(gameObject);
         }
     }
-    private void OnEnable()
-    {
-        if (InputManager.Instance != null)
-        {
-            InputManager.Instance.OnCardClicked += HandleCardClicked;
-        }
-    }
-    private void OnDisable()
-    {
-        if (InputManager.Instance != null)
-        {
-            InputManager.Instance.OnCardClicked -= HandleCardClicked;
-        }
-    }
 
-    private void HandleCardClicked(RuntimeCard card)
-    {
-        switch(InputManager.Instance.currentState)
-        {
 
-        }
-    }
+
     public IEnumerator PlayCardRoutine(RuntimeCard card)
     {
         // 1. 타입에 따른 분기
@@ -68,6 +50,7 @@ public class BattleManager : MonoBehaviour
     private IEnumerator FollowMouseAndPlay(RuntimeCard card)
     {
         isSelectedTCS = new TaskCompletionSource<bool>();
+        InputManager.Instance.UpdateCurrentState(InputState.SelectedSkillCard);
 
         // 마우스 추적 코루틴 별도 실행
         Coroutine follow = StartCoroutine(FollowMouseRoutine(card));
@@ -89,58 +72,64 @@ public class BattleManager : MonoBehaviour
 
         if (isSelectedTCS.Task.Result)
         {
-            CardManager.Instance.RemoveCardFromHand(card);
-            yield return StartCoroutine(card.EffectRoutine());
-            CardManager.Instance.AddCardToDiscard(card);
+            yield return StartCoroutine(PlayerUseCard(card));
         }
-        HandManager.Instance.AlignCards();
+        InputManager.Instance.CancelSelection();
     }
 
     private IEnumerator FollowMouseRoutine(RuntimeCard card)
     {
+        CardUIEffect selectedCard = CardManager.Instance.activeCardUIs[card].GetComponent<CardUIEffect>();
         while (true)
         {
-            Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            mousePos.z = 0;
-            CardManager.Instance.activeCardUIs[card].transform.position = mousePos;
+            Vector3 mousePos = Input.mousePosition;
+            selectedCard.MoveCardPosition(mousePos);
             yield return null;
         }
     }
+    private IEnumerator DrawArrowRoutine(RuntimeCard card)
+    {
+        CardUI targetCardUI = CardManager.Instance.GetCardUI(card);
+        while (true)
+        {
+            if (targetCardUI == null) break;
 
+            Vector2 startPos = targetCardUI.transform.position;
+            Vector2 mousePos = Input.mousePosition;
+            targetingArrow.UpdateCurve(startPos, mousePos);
+
+            yield return null;
+        }
+    }
     private IEnumerator TargetMonsterAndPlay(RuntimeCard card)
     {
         targetTCS = new TaskCompletionSource<Monster>();
-        InputManager.Instance.currentState = InputState.SelectingTarget;
+        InputManager.Instance.UpdateCurrentState(InputState.SelectingTarget);
 
         // 타겟 선택 이벤트 연결
         System.Action onRightClick = () => { targetTCS.TrySetCanceled(); };
         InputManager.Instance.OnRightClick += onRightClick;
         targetingArrow.Show(true);
-
-        while (!targetTCS.Task.IsCompleted && !targetTCS.Task.IsCanceled)
-        {
-            targetingArrow.UpdateArrow(CardManager.Instance.activeCardUIs[card].transform.position, Camera.main.ScreenToWorldPoint(Input.mousePosition));
-            yield return null;
-        }
-
-        targetingArrow.Show(false);
+        Coroutine arrow = StartCoroutine(DrawArrowRoutine(card));
 
         yield return new WaitUntil(() => targetTCS.Task.IsCompleted || targetTCS.Task.IsCanceled);
 
+        targetingArrow.Show(false);
+        StopCoroutine(arrow);
         InputManager.Instance.OnRightClick -= onRightClick;
         InputManager.Instance.currentState = InputState.Idle;
 
-        if (!targetTCS.Task.IsCanceled)
+        if (!targetTCS.Task.IsCanceled && targetTCS.Task.Result != null)
         {
             Monster selected = targetTCS.Task.Result;
             Debug.Log(selected.name + "에게 공격 시전!");
-            CardManager.Instance.RemoveCardFromHand(card);
 
-            yield return StartCoroutine(card.EffectRoutine());
+            yield return StartCoroutine(PlayerUseCard(card,selected.gameObject));
 
-            CardManager.Instance.AddCardToDiscard(card);
         }
+        InputManager.Instance.CancelSelection();
     }
+
 
     // InputManager에서 호출될 타겟 선택 함수
     public void SelectTarget(Monster monster)
@@ -151,61 +140,35 @@ public class BattleManager : MonoBehaviour
         }
     }
 
-    public void ConfirmSelection()
-    {
-        if (selectedCards.Count == requiredCount)
-        {
-            // 완성된 리스트를 반환
-            selectionTCS.SetResult(new List<RuntimeCard>(selectedCards));
-            selectedCards.Clear();
-        }
-    }
 
-    public IEnumerator CardRoutine(CardUI targetCard, GameObject targetMonster = null)
-    {
-        InputManager.Instance.UpdateCurrentState(InputState.Processing);
-
-        // 공격 연출 애니메이션 실행
-
-        
-
-
-
-        InputManager.Instance.UpdateCurrentState(InputState.None);
-    }
 
     /// <summary>
     /// 플레이어가 손패(UI)에서 카드를 선택해 필드에 내려고 할 때 호출되는 함수
     /// </summary>
-    public bool PlayerUseCard(CardUI targetCard, GameObject targetMonster = null)
+    public IEnumerator PlayerUseCard(RuntimeCard runtimeCard, GameObject targetMonster = null)
     {
-        RuntimeCard runtimeCard = targetCard.TargetRuntimeCard;
-        if (runtimeCard == null) return false;
+        if (runtimeCard == null) yield break;
         int requiredCost;
 
         if (!runtimeCard.CanUse(out string failReason))
         {
             Debug.LogWarning($"[배틀] 카드 사용 실패: {failReason}");
-            return false;
+            yield break;
         }
         if (CardCalculator.IsSpendingAllCosts(runtimeCard)) requiredCost = Player.Instance.currentEnergy;
         else requiredCost = runtimeCard.GetCalculatedCost();
 
         Player.Instance.currentEnergy -= requiredCost;
 
+        InputManager.Instance.UpdateCurrentState(InputState.Processing);
+
         Debug.Log($"[배틀] {runtimeCard.OriginData.cardName} 사용 성공! 코스트 {requiredCost} 소모.");
+        CardManager.Instance.RemoveCardFromHand(runtimeCard);
+        yield return StartCoroutine(ExecuteCardTriggerEffects(runtimeCard, CardTriggerType.OnPlay, targetMonster));
+        CardManager.Instance.AddCardToDiscard(runtimeCard);
 
-        ExecuteCardTriggerEffects(runtimeCard, CardTriggerType.OnPlay, targetMonster);
+        InputManager.Instance.CancelSelection();
 
-        if (runtimeCard.OriginData.isExhaust)
-        {
-            CardManager.Instance.UseCardToExhaust(runtimeCard);
-        }
-        else
-        {
-            CardManager.Instance.UseCardToDiscard(runtimeCard);
-        }
-        return true;
     }
 
     /// <summary>
@@ -272,10 +235,10 @@ public class BattleManager : MonoBehaviour
     /// <summary>
     /// 특정 트리거 시점(OnPlay, OnDiscard 등)에 맞춰 카드가 가진 효과를 실행 + 전체적 대상 효과 추가해야함
     /// </summary>
-    public void ExecuteCardTriggerEffects(RuntimeCard runtimeCard, CardTriggerType targetTrigger, GameObject targetMonster = null)
+    public IEnumerator ExecuteCardTriggerEffects(RuntimeCard runtimeCard, CardTriggerType targetTrigger, GameObject targetMonster = null)
     {
-        if (runtimeCard == null) return;
-        if (targetMonster == null && runtimeCard.GetCardEffectTarget() == EffectTarget.Target) return;
+        if (runtimeCard == null) yield break;
+        if (targetMonster == null && runtimeCard.GetCardEffectTarget() == EffectTarget.Target) yield break;
         
         GameObject playerObj = Player.Instance.gameObject;
         foreach (CardEffect effect in runtimeCard.OriginData.cardEffects)
@@ -320,7 +283,7 @@ public class BattleManager : MonoBehaviour
 
 
             //최종 계산된 가공 수치와 횟수만큼 인게임 효과 실행
-            ApplyEffect(effect.GetEffectType(), actualTarget, finalValue, finalExecuteCount, effect);
+            yield return StartCoroutine(ApplyEffect(effect.GetEffectType(), actualTarget, finalValue, finalExecuteCount, effect));
 
         }
     }
@@ -328,9 +291,9 @@ public class BattleManager : MonoBehaviour
     /// <summary>
     /// 최종처리가 끝난 데이터를 기반으로 카드의 효과를 실행
     /// </summary>
-    private void ApplyEffect(CardEffectType type, GameObject target, int value, int executeCount, CardEffect effect)
+    private IEnumerator ApplyEffect(CardEffectType type, GameObject target, int value, int executeCount, CardEffect effect)
     {
-        if (target == null && effect.GetTarget() == EffectTarget.Target) return;
+        if (target == null && effect.GetTarget() == EffectTarget.Target) yield break;
 
 
         switch (type)
@@ -385,7 +348,7 @@ public class BattleManager : MonoBehaviour
                     }
                     else
                     {
-                        StartCoroutine(HandleDiscardEffect(value));
+                        yield return StartCoroutine(HandleDiscardEffect(value));
                     }
                 }
                 break;
@@ -402,39 +365,28 @@ public class BattleManager : MonoBehaviour
     {
         turnCount = 0;
     }
-    private IEnumerator HandleDiscardEffect(int value) 
+    private IEnumerator HandleDiscardEffect(int value, bool isMandatory = true) 
     {
+        var tcs = new TaskCompletionSource<List<RuntimeCard>>();
 
-        if (CardManager.Instance.HandPile.Count <= value)
+        // InputManager에 필요한 수치만 전달
+        InputManager.Instance.StartSelectingMultipleCards(value, (selected) => tcs.SetResult(selected), isMandatory);
+
+        yield return new WaitUntil(() => tcs.Task.IsCompleted);
+
+        foreach (var card in tcs.Task.Result)
         {
-            foreach (var card in CardManager.Instance.HandPile)
-                CardManager.Instance.DiscardFromHand(card);
-        }
-        else
-        {
-            var tcs = new TaskCompletionSource<List<RuntimeCard>>();
-
-            // InputManager에 필요한 수치만 전달
-            InputManager.Instance.StartSelectingMultipleCards(value, (selected) => tcs.SetResult(selected));
-
-            yield return new WaitUntil(() => tcs.Task.IsCompleted);
-
-            foreach (var card in tcs.Task.Result)
-            {
-                CardManager.Instance.DiscardFromHand(card);
-            }
+            yield return StartCoroutine(DiscardProcess(card));
         }
     }
-    public IEnumerator RequestCardSelection(int count)
+
+    public IEnumerator DiscardProcess(RuntimeCard card)
     {
-        requiredCount = count;
-        selectedCards.Clear();
-        selectionTCS = new TaskCompletionSource<List<RuntimeCard>>();
-        InputManager.Instance.currentState = InputState.SelectingCard;
+        CardManager.Instance.RemoveCardFromHand(card);
 
-        // 선택이 완료될 때까지 대기
-        yield return new WaitUntil(() => selectionTCS.Task.IsCompleted);
+        yield return StartCoroutine(ExecuteCardTriggerEffects(card, CardTriggerType.OnDiscard));
 
-        InputManager.Instance.currentState = InputState.Processing;
+        CardManager.Instance.AddCardToDiscard(card);
     }
+
 }

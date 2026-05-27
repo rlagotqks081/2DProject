@@ -40,5 +40,5 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    public void OnClickConfirmButton() => InputManager.Instance.ConfirmSelection();
+    public void OnClickConfirmButton() => InputManager.Instance.OnConfirmButtonClicked();
 }

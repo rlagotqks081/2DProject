@@ -74,8 +74,11 @@ public class HandManager : MonoBehaviour
         if (cardCount == 0) return;
 
         float midindex = (cardCount - 1) / 2f;
-
-        for(int i = 0; i < cardCount; i++)
+        for (int i = 0; i < cardCount; i++)
+        {
+            handCardUIs[i].transform.SetSiblingIndex(i);
+        }
+        for (int i = 0; i < cardCount; i++)
         {
             RectTransform transform = handCardUIs[i].GetComponent<RectTransform>();
             float offset = i - midindex;
@@ -83,7 +86,6 @@ public class HandManager : MonoBehaviour
             float posY = offset * offset * arcIntensity + 150f;
             float rotZ = -offset * rotationIntensity;
 
-            transform.SetAsLastSibling();
             handCardUIs[i].GetComponent<CardUIEffect>().UpdateOriginalTransformIndex();
             transform.localPosition = new Vector3(posX, posY, 0f);
             transform.localRotation = Quaternion.Euler(0f, 0f, rotZ);
@@ -100,13 +102,10 @@ public class HandManager : MonoBehaviour
         GameObject cardObj = cardUI.gameObject;
         if (handCardUIs.Contains(cardObj))
         {
-            cardObj.transform.DOScale(Vector3.zero, 0.3f).SetEase(Ease.InBack).OnComplete(() =>
-            {
-                cardObj.SetActive(false);
-            });
+            cardObj.transform.DOScale(Vector3.zero, 0.3f).SetEase(Ease.InBack);
+            cardObj.SetActive(false);
             handCardUIs.Remove(cardObj);
-            
-            AlignCards();   
+            AlignCards();
         }
     }
 }
