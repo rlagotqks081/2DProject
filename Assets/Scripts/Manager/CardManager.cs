@@ -82,17 +82,17 @@ public class CardManager : MonoBehaviour
             {
                 HandPile.Remove(card);
                 DiscardPile.Add(card);
-                HandManager.Instance.RemoveCardFromHand(activeCardUIs[card]);
+                StartCoroutine(HandManager.Instance.RemoveCardFromHand(activeCardUIs[card]));
             }
         }
         yield break;
     }
-    public void RemoveCardFromHand(RuntimeCard card)
+    public IEnumerator RemoveCardFromHand(RuntimeCard card)
     {
         if (HandPile.Contains(card))
         {
             HandPile.Remove(card);
-            HandManager.Instance.RemoveCardFromHand(activeCardUIs[card]);
+            yield return HandManager.Instance.RemoveCardFromHand(activeCardUIs[card]);
         }
     }
     public void AddCardToDiscard(RuntimeCard card)
@@ -102,46 +102,9 @@ public class CardManager : MonoBehaviour
             DiscardPile.Add(card);
         }
     }
-    /// <summary>
-    /// 카드를 정상적으로 사용해서 해당 카드를 버릴때 호출
-    /// </summary>
-    public void UseCardToDiscard(RuntimeCard card)
-    {
-        if (HandPile.Contains(card))
-        {
-            HandPile.Remove(card);
-            DiscardPile.Add(card);
-            HandManager.Instance.RemoveCardFromHand(activeCardUIs[card]);
-        }
-    }
 
-    /// <summary>
-    /// 카드가 소멸되어서 손에서 사라질때 호출
-    /// </summary>
-    public void UseCardToExhaust(RuntimeCard card)
-    {
-        if (HandPile.Contains(card)) 
-        {
-            HandPile.Remove(card);
-            ExhaustPile.Add(card);
-            HandManager.Instance.RemoveCardFromHand(activeCardUIs[card]);  //일단 핸드매니저의 버리는함수를 넣었지만 나중엔 바꿀수도 
-        }
-    }
 
-    /// <summary>
-    /// 버리기효과로 손에서 카드를 버릴때 호출
-    /// </summary>
-    public void DiscardFromHand(RuntimeCard card)
-    {
-        if (HandPile.Contains(card))
-        {
-            HandPile.Remove(card);
-            HandManager.Instance.RemoveCardFromHand(activeCardUIs[card]);
-            StartCoroutine(BattleManager.Instance.ExecuteCardTriggerEffects(card, CardTriggerType.OnDiscard));
-            DiscardPile.Add(card);
 
-        }
-    }
 
     /// <summary>
     /// 버려진 카드 폴더에 있는것 모두 드로우 파일에 옮기기 (파일 셔플도 같이하기)

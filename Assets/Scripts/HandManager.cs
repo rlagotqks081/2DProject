@@ -1,5 +1,6 @@
 ﻿using DG.Tweening;
 using NUnit.Framework;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -58,12 +59,16 @@ public class HandManager : MonoBehaviour
         {
             newCardObj.GetComponent<CardUIEffect>().SetSelectedState(false);
             handCardUIs.Add(newCardObj);
-            newCardObj.transform.localScale = Vector3.zero;
-            newCardObj.transform.DOScale(Vector3.one, 0.3f).SetEase(Ease.OutBack);
+            StartCoroutine(CardDrawAnimation(newCardObj));
         }
         AlignCards();
     }
-
+    private IEnumerator CardDrawAnimation(GameObject targetObj)  // 나중엔 드로우할카드 덱 아이콘에서 손패로 오게 짜기
+    {
+        targetObj.transform.localScale = Vector3.zero;
+        targetObj.transform.DOScale(Vector3.one, 0.3f).SetEase(Ease.OutBack);
+        yield break;
+    }
     /// <summary>
     /// 손에 있는 CardUI오브젝트들을 부채꼴로 정렬하는 함수
     /// </summary>
@@ -97,15 +102,33 @@ public class HandManager : MonoBehaviour
     /// <summary>
     /// 손에서 버려지는 카드의 CardUI를 받아서 해당 오브젝트를 disactive하고 재정렬 하는 함수
     /// </summary>
-    public void RemoveCardFromHand(CardUI cardUI) // 버려지는 애니메이션 추가해야함
+    public IEnumerator RemoveCardFromHand(CardUI cardUI) // 버려지는 애니메이션 추가해야함
     {
         GameObject cardObj = cardUI.gameObject;
         if (handCardUIs.Contains(cardObj))
         {
-            cardObj.transform.DOScale(Vector3.zero, 0.3f).SetEase(Ease.InBack);
-            cardObj.SetActive(false);
             handCardUIs.Remove(cardObj);
-            AlignCards();
+
+            yield return cardObj.transform.DOScale(Vector3.zero, 0.1f)
+            .SetEase(Ease.InBack)
+            .WaitForCompletion();
+
+            // 4. 애니메이션이 끝난 후 비활성화
+            cardObj.SetActive(false);
+
         }
+        yield break;
     }
+
+    public IEnumerator DiscardAnimation(GameObject cardObj)
+    {
+        cardObj.transform.DOScale(Vector3.zero, 0.2f).SetEase(Ease.InBack).OnComplete(() =>
+        {
+            cardObj.SetActive(false);
+        });
+        yield break;
+    }
+
 }
+
+

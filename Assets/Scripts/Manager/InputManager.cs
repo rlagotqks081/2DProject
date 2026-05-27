@@ -259,13 +259,11 @@ public class InputManager : MonoBehaviour
             CardUIEffect hoverEffect = selectedCardUI.GetComponent<CardUIEffect>();
             if (hoverEffect != null)
             {
-                hoverEffect.ResetToOriginalState();
+               hoverEffect.ResetToOriginalState();
             }
         }
 
         // 변수 및 상태 초기화
         selectedCardUI = null;
-        UpdateCurrentState(InputState.Idle);
-        HandManager.Instance.AlignCards();
     }
 }

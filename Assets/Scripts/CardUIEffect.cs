@@ -32,6 +32,7 @@ public class CardUIEffect : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
     }
     public void OnPointerEnter(PointerEventData eventData)
     {
+        if (InputManager.Instance.currentState == InputState.SelectedSkillCard) return;
         if (isSelected || InputManager.Instance.currentState == InputState.Processing) return;
         if (InputManager.Instance != null && InputManager.Instance.currentState == InputState.SelectingTarget)
             return;
@@ -48,6 +49,7 @@ public class CardUIEffect : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
 
     public void OnPointerExit(PointerEventData eventData)
     {
+        if (InputManager.Instance.currentState == InputState.SelectedSkillCard) return;
         if (isSelected || InputManager.Instance.currentState == InputState.Processing) return;
         if (InputManager.Instance != null && InputManager.Instance.currentState == InputState.SelectingTarget)
             return;

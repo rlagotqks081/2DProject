@@ -74,7 +74,11 @@ public class BattleManager : MonoBehaviour
         {
             yield return StartCoroutine(PlayerUseCard(card));
         }
-        InputManager.Instance.CancelSelection();
+        else
+        {
+            InputManager.Instance.CancelSelection();
+            InputManager.Instance.UpdateCurrentState(InputState.Idle);
+        }
     }
 
     private IEnumerator FollowMouseRoutine(RuntimeCard card)
@@ -117,7 +121,6 @@ public class BattleManager : MonoBehaviour
         targetingArrow.Show(false);
         StopCoroutine(arrow);
         InputManager.Instance.OnRightClick -= onRightClick;
-        InputManager.Instance.currentState = InputState.Idle;
 
         if (!targetTCS.Task.IsCanceled && targetTCS.Task.Result != null)
         {
@@ -127,7 +130,11 @@ public class BattleManager : MonoBehaviour
             yield return StartCoroutine(PlayerUseCard(card,selected.gameObject));
 
         }
-        InputManager.Instance.CancelSelection();
+        else
+        {
+            InputManager.Instance.UpdateCurrentState(InputState.Idle);
+        }
+            InputManager.Instance.CancelSelection();
     }
 
 
@@ -153,21 +160,26 @@ public class BattleManager : MonoBehaviour
         if (!runtimeCard.CanUse(out string failReason))
         {
             Debug.LogWarning($"[배틀] 카드 사용 실패: {failReason}");
+            InputManager.Instance.UpdateCurrentState(InputState.Idle);
+            InputManager.Instance.CancelSelection();
             yield break;
         }
         if (CardCalculator.IsSpendingAllCosts(runtimeCard)) requiredCost = Player.Instance.currentEnergy;
         else requiredCost = runtimeCard.GetCalculatedCost();
 
-        Player.Instance.currentEnergy -= requiredCost;
+
+
+        yield return StartCoroutine(CardManager.Instance.RemoveCardFromHand(runtimeCard));
+        HandManager.Instance.AlignCards();
 
         InputManager.Instance.UpdateCurrentState(InputState.Processing);
 
         Debug.Log($"[배틀] {runtimeCard.OriginData.cardName} 사용 성공! 코스트 {requiredCost} 소모.");
-        CardManager.Instance.RemoveCardFromHand(runtimeCard);
-        yield return StartCoroutine(ExecuteCardTriggerEffects(runtimeCard, CardTriggerType.OnPlay, targetMonster));
-        CardManager.Instance.AddCardToDiscard(runtimeCard);
 
-        InputManager.Instance.CancelSelection();
+        
+        EffectManager.Instance.AddEffect(new TriggerEffectWrapper(runtimeCard, CardTriggerType.OnPlay, targetMonster));
+
+        Player.Instance.currentEnergy -= requiredCost;
 
     }
 
@@ -373,20 +385,24 @@ public class BattleManager : MonoBehaviour
         InputManager.Instance.StartSelectingMultipleCards(value, (selected) => tcs.SetResult(selected), isMandatory);
 
         yield return new WaitUntil(() => tcs.Task.IsCompleted);
+        foreach(var card in tcs.Task.Result)
+        {
+            yield return StartCoroutine(CardManager.Instance.RemoveCardFromHand(card));
+        }
 
         foreach (var card in tcs.Task.Result)
         {
             yield return StartCoroutine(DiscardProcess(card));
         }
+        
     }
 
     public IEnumerator DiscardProcess(RuntimeCard card)
     {
-        CardManager.Instance.RemoveCardFromHand(card);
+        EffectManager.Instance.AddEffect(new TriggerEffectWrapper(card, CardTriggerType.OnDiscard));
 
-        yield return StartCoroutine(ExecuteCardTriggerEffects(card, CardTriggerType.OnDiscard));
 
-        CardManager.Instance.AddCardToDiscard(card);
+        yield break;
     }
 
 }
