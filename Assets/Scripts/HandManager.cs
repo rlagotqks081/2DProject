@@ -9,6 +9,7 @@ public class HandManager : MonoBehaviour
     public static HandManager Instance { get; private set; }
 
     [SerializeField] private RectTransform handLayoutGroup;
+    [SerializeField] private CanvasGroup handCanvasGroup;
     [SerializeField] private GameObject cardPrefab;
 
     [Header("Hand settings")]
@@ -25,6 +26,32 @@ public class HandManager : MonoBehaviour
         else Destroy(gameObject);
     }
 
+    private void OnEnable()
+    {
+        if (BattleFlowManager.Instance != null)
+        {
+            BattleFlowManager.Instance.OnGameOver += HandleGameOver;
+        }
+    }
+
+    private void HandleGameOver(GameOverType type)
+    {
+        StartCoroutine(CleanAllHands());
+    }
+
+    private IEnumerator CleanAllHands()
+    {
+        yield return handCanvasGroup.DOFade(0f, 0.5f).WaitForCompletion();
+
+        foreach (Transform card in handCanvasGroup.transform)
+        {
+            card.gameObject.SetActive(false);
+        }
+
+        handCanvasGroup.alpha = 1f;
+
+        handCardUIs.Clear();
+    }
     public void SetupHand()
     {
         for(int i = handLayoutGroup.childCount - 1; i >= 0; i--)

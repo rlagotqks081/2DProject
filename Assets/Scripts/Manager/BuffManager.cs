@@ -20,6 +20,7 @@ public class BuffManager : MonoBehaviour
     {
         foreach(BuffSystem buffSystem in activeBuffs.Values)
         {
+            if (buffSystem.HasBuff(BuffType.Poison)) buffSystem.GetComponent<IDamageable>().TakeDirectDamage(buffSystem.GetBuffValue(BuffType.Poison));
             buffSystem.TickTurnBuffs();
         }
     }

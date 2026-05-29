@@ -32,6 +32,7 @@ public class CardUIEffect : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
     }
     public void OnPointerEnter(PointerEventData eventData)
     {
+        if (BattleFlowManager.Instance.IsGameOver) return;
         if (InputManager.Instance.currentState == InputState.SelectedSkillCard) return;
         if (isSelected || InputManager.Instance.currentState == InputState.Processing) return;
         if (InputManager.Instance != null && InputManager.Instance.currentState == InputState.SelectingTarget)
@@ -49,6 +50,7 @@ public class CardUIEffect : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
 
     public void OnPointerExit(PointerEventData eventData)
     {
+        if (BattleFlowManager.Instance.IsGameOver) return;
         if (InputManager.Instance.currentState == InputState.SelectedSkillCard) return;
         if (isSelected || InputManager.Instance.currentState == InputState.Processing) return;
         if (InputManager.Instance != null && InputManager.Instance.currentState == InputState.SelectingTarget)

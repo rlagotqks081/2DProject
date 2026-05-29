@@ -1,4 +1,4 @@
-{
+﻿{
   "cards": [
     {
       "cardID": 1001,
@@ -284,7 +284,7 @@
         {
           "effectType": "Damage_Use_AllCost",
           "triggerType": "OnPlay",
-          "value": 7,
+          "value": 40,
           "executeCount": 0,
           "upgradeBonus": 3,
           "upgradeCountBonus": 1,
@@ -298,7 +298,7 @@
       "cardName": "전략가",
       "cardType": "Skill",
       "cost": 0,
-      "description": "\u0022사용불가.\\n이 카드가 버려지면",
+      "description": "사용불가. \n이 카드가 버려지면 에너지를 1 얻습니다.",
       "iconPath": "not",
       "upgradeCostBonus": 0,
       "isExhaust": false,
@@ -321,7 +321,7 @@
       "cardName": "반사 신경",
       "cardType": "Skill",
       "cost": 0,
-      "description": "\u0022사용불가.\\n이 카드가 버려지면",
+      "description": "사용불가. \n이 카드가 버려지면 카드를 2장 드로우합니다.",
       "iconPath": "not ",
       "upgradeCostBonus": 0,
       "isExhaust": false,

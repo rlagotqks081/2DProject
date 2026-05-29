@@ -169,6 +169,19 @@ public class InputManager : MonoBehaviour
     public void UpdateCurrentState(InputState state)
     {
         currentState = state;
+        if (currentState == InputState.Processing)
+        {
+            UIManager.Instance.SetEndTurnButtonInteractable(false);
+            UIManager.Instance.SetConfirmButtonInteractable(false);
+        }
+        else if (currentState == InputState.Idle) 
+        {
+            UIManager.Instance.SetEndTurnButtonInteractable(true);
+        }
+        else if (currentState != InputState.SelectingCard)
+        {
+            UIManager.Instance.SetConfirmButtonInteractable(true);
+        }
     }
 
     //SelectingCard 상태 관련 함수는 카드의 UI관련 움직임조작 나중에 CardEffect로 빼야함 - 이것도 UIManager같은곳으로 빼야할지 고민중

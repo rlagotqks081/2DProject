@@ -27,15 +27,28 @@ public class EffectManager : MonoBehaviour
     {
         _isProcessing = true;
         InputManager.Instance.UpdateCurrentState(InputState.Processing);
+        System.Action<GameOverType> onGameOver = (GameOverType type) => { _effectQueue.Clear(); };
+        BattleFlowManager.Instance.OnGameOver += onGameOver;
 
-        while (_effectQueue.Count > 0)
+        try
         {
-            ICardEffect effect = _effectQueue.Dequeue();
-            yield return StartCoroutine(effect.Execute());
-            HandManager.Instance.AlignCards();
+            while (_effectQueue.Count > 0)
+            {
+                // 게임 오버 시 즉시 중단
+                if (BattleFlowManager.Instance.IsGameOver) yield break;
+
+                ICardEffect effect = _effectQueue.Dequeue();
+                yield return StartCoroutine(effect.Execute());
+                HandManager.Instance.AlignCards();
+            }
+        }
+        finally
+        {
+            // 성공/실패/중단 여부와 상관없이 무조건 실행
+            _isProcessing = false;
+            InputManager.Instance.UpdateCurrentState(InputState.Idle);
+            BattleFlowManager.Instance.OnGameOver -= onGameOver;
         }
 
-        _isProcessing = false;
-        InputManager.Instance.UpdateCurrentState(InputState.Idle);
     }
 }

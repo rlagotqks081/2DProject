@@ -19,11 +19,16 @@ public class Monster : MonoBehaviour, IDamageable
     public int maxHp;
     public int currentHp;
     public int currentBlock;
+    public int actionValue;
+    public SpriteRenderer actionIcon;
+    public TextMeshPro actionText;
+    public GameObject healthBar_Block;
+    public TextMeshPro blockValueText;
 
     [Header("[런타임 AI 패턴]")]
-    private List<MonsterPatternData> runtimePatterns;
+    public List<MonsterPatternData> runtimePatterns;
     private int currentPatternIndex = 0;
-    public int CurrentHp
+    private int CurrentHp
     {
         get => currentHp;
         set
@@ -33,7 +38,7 @@ public class Monster : MonoBehaviour, IDamageable
 
             if (currentHp <= 0)
             {
-                //Die();   죽는로직 맨들기
+                BattleFlowManager.Instance.ChackBattleState();
             }
         }
     }
@@ -60,13 +65,18 @@ public class Monster : MonoBehaviour, IDamageable
         buffSystem = GetComponent<BuffSystem>();
         Debug.Log($"[Monster] '{monsterName}' 로드 완료. (HP: {maxHp})");
     }
-
+    public void TakeDirectDamage(int damage, int count = 1)
+    {
+        CurrentHp -= damage;
+    }
     public void TakeDamage(int damage, int count = 1)
     {
-        int finalDamage = damage;
-        if (finalDamage <= 0) return;
+        
+        if (damage <= 0) return;
         for (int i = 0; i < count; i++)
         {
+            int finalDamage = damage;
+            if (CurrentHp <= 0) return;
             if (currentBlock > 0)
             {
                 if (currentBlock >= finalDamage)
@@ -79,6 +89,7 @@ public class Monster : MonoBehaviour, IDamageable
                     finalDamage -= currentBlock;
                     currentBlock = 0;
                 }
+                UpdateBlockIcon();
             }
 
             if (finalDamage > 0)
@@ -95,6 +106,18 @@ public class Monster : MonoBehaviour, IDamageable
         {
             fillImage.fillAmount = (float)CurrentHp / maxHp;
             healthText.text = CurrentHp.ToString() + "/" + maxHp.ToString();
+        }
+    }
+    private void UpdateBlockIcon()
+    {
+        if(currentBlock > 0)
+        {
+            healthBar_Block.SetActive(true);
+            blockValueText.text = currentBlock.ToString();
+        }
+        else
+        {
+            healthBar_Block.SetActive(false);
         }
     }
     private void Die()
@@ -115,6 +138,7 @@ public class Monster : MonoBehaviour, IDamageable
         {
             currentBlock += value;
         }
+        UpdateBlockIcon();
     }
 
     public MonsterPatternData GetCurrentIntent()
@@ -127,6 +151,38 @@ public class Monster : MonoBehaviour, IDamageable
     {
         if (runtimePatterns == null || runtimePatterns.Count <= 1) return;
         currentPatternIndex = (currentPatternIndex + 1) % runtimePatterns.Count;
+
+        UpdateNextActionIcon();
+    }
+
+    public void UpdateNextActionIcon()
+    {
+        switch (runtimePatterns[currentPatternIndex].effects[0].effectType)  // 몬스터의 다음 행동 아이콘 업데이트
+        {
+            case MonsterActionType.Attack:
+                actionIcon.sprite = Resources.Load<Sprite>("Sprite/Battle_Icon/Attack_Icon");
+                actionValue = runtimePatterns[currentPatternIndex].effects[0].value;
+                actionText.text = actionValue.ToString();
+                break;
+            case MonsterActionType.Defend:
+                actionIcon.sprite = Resources.Load<Sprite>("Sprite/Battle_Icon/Defend_Icon");
+                actionValue = runtimePatterns[currentPatternIndex].effects[0].value;
+                actionText.text = actionValue.ToString();
+                break;
+            case MonsterActionType.Buff:
+                // actionIcon.sprite = Resources.Load<Sprite>("Sprite/Battle_Icon/Buff_Icon");
+                actionText.text = "";
+                break;
+            case MonsterActionType.Debuff:
+                // actionIcon.sprite = Resources.Load<Sprite>("Sprite/Battle_Icon/Debuff_Icon");
+                actionText.text = "";
+                break;
+        }
+    }
+    public void UpdateCurStat()
+    {
+        currentBlock = 0;  // 나중에 바리케이드버프를 만들면 바꿔야할곳
+        UpdateBlockIcon();
     }
     public void SetHighlight(bool IsHighlight)
     {

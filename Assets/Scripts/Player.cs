@@ -26,7 +26,7 @@ public class Player : MonoBehaviour, IDamageable
 
             if (currentHp <= 0)
             {
-                //Die();   죽는로직 맨들기
+                BattleFlowManager.Instance.ChackBattleState();
             }
         }
     }
@@ -40,6 +40,7 @@ public class Player : MonoBehaviour, IDamageable
         else Destroy(gameObject);
 
     }
+
     private void UpdateHealthBar()
     {
         if (fillImage != null)
@@ -53,6 +54,8 @@ public class Player : MonoBehaviour, IDamageable
         CurrentHp = maxHp;
         block = 0;
         currentEnergy = maxEnergy;
+        UpdateHealthBar();
+        UIManager.Instance.UpdatePlayerEnergyText();
     }
 
     public void OnStartTurn()
@@ -87,7 +90,7 @@ public class Player : MonoBehaviour, IDamageable
         }
     }
 
-    public void TakeDirectDamage(int damage)
+    public void TakeDirectDamage(int damage, int count = 1)
     {
         CurrentHp -= damage;
     }
@@ -112,15 +115,16 @@ public class Player : MonoBehaviour, IDamageable
         {
             currentEnergy += amount;
         }
-        
-    }
+        UIManager.Instance.UpdatePlayerEnergyText();
 
+    }
 
     public bool SpendEnergy(int amount)
     {
         if (currentEnergy >= amount)
         {
             currentEnergy -= amount;
+            UIManager.Instance.UpdatePlayerEnergyText();
             return true;
         }
         return false;

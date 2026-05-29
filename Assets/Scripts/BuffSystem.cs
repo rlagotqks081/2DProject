@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
+using System.Collections;
 
 public class BuffSystem : MonoBehaviour
 {
@@ -40,8 +41,17 @@ public class BuffSystem : MonoBehaviour
     }
     public void TickTurnBuffs()
     {
-        if (currentBuffs.ContainsKey(BuffType.Vulnerable)) AddBuff(BuffType.Vulnerable, -1);
-        if (currentBuffs.ContainsKey(BuffType.Weak)) AddBuff(BuffType.Weak, -1);
-        if (currentBuffs.ContainsKey(BuffType.Poison)) AddBuff(BuffType.Poison, -1);
+        foreach(BuffType type in currentBuffs.Keys)
+        {
+            switch(type)
+            {
+                case BuffType.Vulnerable:
+                case BuffType.Weak:
+                case BuffType.Poison:
+                case BuffType.Frail:
+                    AddBuff(type, -1);
+                    break;
+            }
+        }
     }
 }

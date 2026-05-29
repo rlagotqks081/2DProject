@@ -24,6 +24,26 @@ public class CardManager : MonoBehaviour
         if (Instance == null) Instance = this;
         else Destroy(gameObject);
     }
+    private void OnEnable()
+    {
+        if (BattleFlowManager.Instance != null)
+        {
+            BattleFlowManager.Instance.OnGameOver += ResetCardData;
+        }
+    }
+
+    public void ResetCardData(GameOverType result)
+    {
+        if(result == GameOverType.PlayerDead)
+        {
+            CardDeck.Clear();
+            activeCardUIs.Clear();
+        }
+        HandPile.Clear();
+        DiscardPile.Clear();
+        DrawPile.Clear();
+        ExhaustPile.Clear();
+    }
 
     public void TestSetup()
     {

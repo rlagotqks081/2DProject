@@ -37,13 +37,14 @@ public class TurnManager : MonoBehaviour
     {
         // 플레이어 입력 잠금
         InputManager.Instance.UpdateCurrentState(InputState.Processing);
-        endTurnButton.interactable = false; 
+        curTurn++;
 
         yield return CardManager.Instance.DiscardAllCards();
+        BuffManager.Instance.TurnEndChangeBuffs();
 
-        // 3. 적 턴으로 전환 (필요 시)
-        // yield return StartCoroutine(EnemyTurnRoutine());
+        yield return BattleManager.Instance.StartMonsterTurn();
 
+        BattleManager.Instance.StartPlayerTurn();
         InputManager.Instance.UpdateCurrentState(InputState.Idle);
         endTurnButton.interactable = true;
     }

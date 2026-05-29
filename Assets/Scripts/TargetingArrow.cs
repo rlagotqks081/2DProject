@@ -16,6 +16,7 @@ public class TargetingArrow : MonoBehaviour
         for (int i = 0; i < segmentCount; i++)
         {
             GameObject obj = Instantiate(arrowSegmentPrefab, transform);
+            obj.SetActive(false);
             obj.GetComponent<Image>().raycastTarget = false; // 마우스 입력 방해 금지
             segments.Add(obj.GetComponent<Image>());
         }
@@ -28,9 +29,9 @@ public class TargetingArrow : MonoBehaviour
         }
     }
 
+
     public void UpdateCurve(Vector3 start, Vector3 end)
     {
-
         Vector2 startLocalPos;
         RectTransformUtility.ScreenPointToLocalPointInRectangle(
             canvasRect,

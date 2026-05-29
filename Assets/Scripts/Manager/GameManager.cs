@@ -54,7 +54,14 @@ public class GameManager : MonoBehaviour
                 break;
         }
     }
-
+    public void QuitGame()
+    {
+        #if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+        #else
+        Application.Quit();
+        #endif
+    }
     void SetupBattle()
     {
         Debug.Log("GameManager - SetupBattle 실행");
@@ -62,6 +69,9 @@ public class GameManager : MonoBehaviour
        player.ResetStats();
         HandManager.Instance.SetupHand();
         CardManager.Instance.TestSetup();
+        BuffManager.Instance.AddBuffObj(player.gameObject);
+        BuffManager.Instance.AddBuffObj(currentMonster.gameObject);
+        currentMonster.UpdateNextActionIcon();
         // 여기서 몬스터 랜덤소환 or 몬스터 소환
 
         ChangeState(TurnState.PlayerTurn);

@@ -10,6 +10,7 @@ public class BattleManager : MonoBehaviour
     [SerializeField] public int turnCount = 0;
     // 필드에 존재하는 활성화된 몬스터들을 관리하는 리스트
     [SerializeField] public List<Monster> activeMonsters = new List<Monster>();
+    [SerializeField] public List<Monster> deadMonsters = new List<Monster>();
 
     private List<RuntimeCard> selectedCards = new List<RuntimeCard>();
     private int requiredCount;
@@ -30,6 +31,20 @@ public class BattleManager : MonoBehaviour
         {
             Destroy(gameObject);
         }
+    }
+
+    private void OnEnable()
+    {
+        if (BattleFlowManager.Instance != null)
+        {
+            BattleFlowManager.Instance.OnGameOver += HandleGameOver;
+        }
+    }
+
+    private void HandleGameOver(GameOverType result)
+    {
+        activeMonsters.Clear();
+        turnCount = 0;
     }
 
 
@@ -179,32 +194,21 @@ public class BattleManager : MonoBehaviour
         
         EffectManager.Instance.AddEffect(new TriggerEffectWrapper(runtimeCard, CardTriggerType.OnPlay, targetMonster));
 
-        Player.Instance.currentEnergy -= requiredCost;
+        Player.Instance.SpendEnergy(requiredCost);
 
     }
 
-    /// <summary>
-    /// 플레이어가 '턴 종료' 버튼을 눌렀을 때 호출되는 함수
-    /// </summary>
-    public void EndPlayerTurn()
-    {
-        Debug.Log("[배틀] 플레이어 턴 종료.");
-
-        // 손에 남은 카드들 싹 버리기
-        // CardManager.Instance.DiscardAllHand();
-
-        StartMonsterTurn();
-    }
 
     // 만들다가 말았음(최신화 해야함)
-    private void StartMonsterTurn()
+    public IEnumerator StartMonsterTurn()
     {
         GameObject playerObj = Player.Instance.gameObject;
-
+        
         // 필드에 살아있는 모든 몬스터를 순회하며 예약된 행동 실행
         foreach (Monster monster in activeMonsters)
         {
             if (monster == null) continue;
+            monster.UpdateCurStat();
             MonsterPatternData pattern = monster.GetCurrentIntent();
             if (pattern == null) continue;
 
@@ -222,7 +226,7 @@ public class BattleManager : MonoBehaviour
                         break;
 
                     case MonsterActionType.Defend:
-                        monster.currentBlock += monsterEffect.value;
+                        monster.AddBlock(monsterEffect.value);
                         break;
 
                     case MonsterActionType.Buff:
@@ -234,12 +238,14 @@ public class BattleManager : MonoBehaviour
             }
             monster.AdvancePattern();
         }
+        yield break;
     }
 
-    private void StartPlayerTurn()
+    public void StartPlayerTurn()
     {
-        // Player.Instance.RestoreEnergyToMax();
+        Player.Instance.OnStartTurn();
         CardManager.Instance.DrawCards(5);
+        UIManager.Instance.UpdatePlayerEnergyText();
     }
 
 
@@ -256,7 +262,7 @@ public class BattleManager : MonoBehaviour
         foreach (CardEffect effect in runtimeCard.OriginData.cardEffects)
         {
             if (effect.GetTriggerType() != targetTrigger) continue;
-
+            if (BattleFlowManager.Instance.IsGameOver) yield break;
             GameObject actualTarget = (effect.GetTarget() == EffectTarget.Self) ? playerObj : targetMonster;
             int finalValue = 0;
             int finalExecuteCount = CardCalculator.GetAttackCount(runtimeCard, effect);
@@ -306,7 +312,7 @@ public class BattleManager : MonoBehaviour
     private IEnumerator ApplyEffect(CardEffectType type, GameObject target, int value, int executeCount, CardEffect effect)
     {
         if (target == null && effect.GetTarget() == EffectTarget.Target) yield break;
-
+        if (BattleFlowManager.Instance.IsGameOver) yield break;
 
         switch (type)
         {
@@ -315,9 +321,9 @@ public class BattleManager : MonoBehaviour
             case CardEffectType.Damage:
                 if(target == null)
                 {
-                    foreach(Monster targets in activeMonsters)
+                    for(int i = activeMonsters.Count - 1; i >= 0; i--)
                     {
-                        targets.TakeDamage(CardCalculator.VulnerableCalculate(value, BuffManager.Instance.IsObjHasBuff(targets.gameObject, BuffType.Vulnerable)), executeCount);
+                        activeMonsters[i].TakeDamage(CardCalculator.VulnerableCalculate(value, BuffManager.Instance.IsObjHasBuff(activeMonsters[i].gameObject, BuffType.Vulnerable)), executeCount);
                     }
                     break;
                 }
