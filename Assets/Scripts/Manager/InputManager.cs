@@ -13,6 +13,7 @@ public enum InputState
     SelectedSkillCard,
     Processing,
     CardListPopupOpened,
+    MapOpened,
     Result
 }
 
@@ -143,12 +144,10 @@ public class InputManager : MonoBehaviour
     {
         var result = new List<RuntimeCard>(selectedCards);
 
-        // 2. 선택된 카드들의 하이라이트 효과 해제 (깨끗한 상태로 복귀)
 
 
         onSelectionConfirmed?.Invoke(result);
 
-        // 4. UI 및 상태 초기화
         selectedCards.Clear();
         UIManager.Instance.confirmButton.gameObject.SetActive(false);
         UIManager.Instance.SetConfirmButtonInteractable(false);
@@ -164,6 +163,13 @@ public class InputManager : MonoBehaviour
             UIManager.Instance.CardListPopup.SetActive(false);
             UIManager.Instance.SetBackgroundDark(false);
         }
+        else if (currentState == InputState.MapOpened)
+        {
+            UpdateCurrentState(InputState.CardListPopupOpened, true);
+            UIManager.Instance.CardListPopup.SetActive(true);
+            UIManager.Instance.SetCardDeckList();
+            UIManager.Instance.MapPopup.SetActive(false);
+        }
         else
         {
             CancelSelection();
@@ -176,16 +182,22 @@ public class InputManager : MonoBehaviour
 
     public void OnOpenMapButtonClicked()
     {
-        if (currentState == InputState.CardListPopupOpened)
+        if (currentState == InputState.MapOpened)
         {
             RestorePreState();
             UIManager.Instance.MapPopup.SetActive(false);
             UIManager.Instance.SetBackgroundDark(false);
         }
+        else if (currentState == InputState.CardListPopupOpened)
+        {
+            UpdateCurrentState(InputState.MapOpened, true);
+            UIManager.Instance.MapPopup.SetActive(true);
+            UIManager.Instance.CardListPopup.SetActive(false);
+        }
         else
         {
             CancelSelection();
-            UpdateCurrentState(InputState.CardListPopupOpened, true);
+            UpdateCurrentState(InputState.MapOpened, true);
             UIManager.Instance.MapPopup.SetActive(true);
             UIManager.Instance.SetBackgroundDark(true);
         }
@@ -233,7 +245,11 @@ public class InputManager : MonoBehaviour
     public void UpdateCurrentState(InputState state, bool isForceExecute = false)
     {
         if (currentState == InputState.Result && !isForceExecute) return;
-        StateHistory.Push(currentState);
+        if(currentState != InputState.CardListPopupOpened && currentState != InputState.MapOpened)
+        {
+            StateHistory.Push(currentState);
+        }
+ 
 
         currentState = state;
         if (currentState == InputState.Processing)
