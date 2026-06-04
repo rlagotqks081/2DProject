@@ -1,13 +1,15 @@
-﻿using UnityEngine;
+﻿using Unity.VisualScripting;
+using UnityEngine;
 
+public enum GameState { Start, Monster, Shop, Random, Boss, WinBattle, LoseBattle, Map }
 public class GameManager : MonoBehaviour
 {
-    public static GameManager instance { get; private set; }
+    public static GameManager Instance { get; private set; }
 
-    public enum TurnState { Start, PlayerTurn, MonsterTurn, Won, Lost }
+
 
     [Header("Current State")]
-    public TurnState currentState;
+    public GameState currentState;
 
     [Header("References")]
     public Player player;
@@ -15,9 +17,9 @@ public class GameManager : MonoBehaviour
 
     void Awake()
     {
-        if (instance == null)
+        if (Instance == null)
         {
-            instance = this;
+            Instance = this;
             DontDestroyOnLoad(gameObject);
         }
         else Destroy(gameObject);
@@ -25,32 +27,41 @@ public class GameManager : MonoBehaviour
     void Start()
     {
         player = Player.Instance;
-        ChangeState(TurnState.Start);
+        ChangeState(GameState.Start);
     }
 
-    public void ChangeState(TurnState newState)
+    public void ChangeState(GameState newState)
     {
         currentState = newState;
 
         switch (currentState)
         {
-            case TurnState.Start:
-                SetupBattle();
+            case GameState.Start:
+                SetupGame();
+
+                ChangeState(GameState.Monster); // 테스트용 바로 전투돌입
                 break;
-            case TurnState.PlayerTurn:
-                Debug.Log("Player Turn Start");
+            case GameState.Monster:
+                Debug.Log("[GameManager] 전투 시작]");
+                SetupBattle();
                 player.OnStartTurn();
                 break;
-            case TurnState.MonsterTurn:
-                Debug.Log("Monster Turn Start");
-               // if (currentMonster != null) currentMonster.ExecuteTurn();
-                ChangeState(TurnState.PlayerTurn);
+            case GameState.Shop:
                 break;
-            case TurnState.Won:
+            case GameState.Random:
                 // 승리 결과 
                 break;
-            case TurnState.Lost:
+            case GameState.Boss:
                 // 패배 결과
+                break;
+            case GameState.WinBattle:
+                Destroy(currentMonster.gameObject);
+                currentMonster = SpawnManager.Instance.SpawnMonster("10001").GetComponent<Monster>();
+                ChangeState(GameState.Monster);
+                break;
+            case GameState.LoseBattle:
+                break;
+            case GameState.Map:
                 break;
         }
     }
@@ -62,31 +73,30 @@ public class GameManager : MonoBehaviour
         Application.Quit();
         #endif
     }
-    void SetupBattle()
+     public void SetupGame()
+    {
+        player.ResetStats();
+        HandManager.Instance.SetupHand();
+        CardManager.Instance.BaseCardSetup();
+        BuffManager.Instance.AddBuffObj(player.gameObject);
+    }
+
+    private void SetupBattle()
     {
         Debug.Log("GameManager - SetupBattle 실행");
-        
-       player.ResetStats();
-        HandManager.Instance.SetupHand();
-        CardManager.Instance.TestSetup();
-        BuffManager.Instance.AddBuffObj(player.gameObject);
-        BuffManager.Instance.AddBuffObj(currentMonster.gameObject);
-        currentMonster.UpdateNextActionIcon();
+        BattleFlowManager.Instance.ResetSetting();
+        CardManager.Instance.SetupCards();
+        BuffManager.Instance.ClearTargetBuffs(player.gameObject);
         // 여기서 몬스터 랜덤소환 or 몬스터 소환
 
-        ChangeState(TurnState.PlayerTurn);
-   
+        // BuffManager.Instance.AddBuffObj(currentMonster.gameObject);
+        // BuffManager.Instance.ClearTargetBuffs(currentMonster.gameObject);
+        currentMonster.UpdateNextActionIcon();
+
+
     }
 
 
-    public void EndPlayerTurn()
-    {
-        if (currentState != TurnState.PlayerTurn) return;
-
-        // 버프매니저로 플레이어 턴 종료시 독이나 디버프 정산하기
-        // 핸드의 카드들 무덤으로 버리기 - HandCardController 혹은 매니저 만들어서 사용
-        ChangeState(TurnState.MonsterTurn);
-    }
 
     //public void ProcessMonsterAction(GameObject monsterObj, MonsterAction action)
     //{

@@ -12,7 +12,6 @@ public class TargetingArrow : MonoBehaviour
 
     private void Awake()
     {
-        // 1. 오브젝트 풀링: 화살표 조각 미리 생성
         for (int i = 0; i < segmentCount; i++)
         {
             GameObject obj = Instantiate(arrowSegmentPrefab, transform);
@@ -39,7 +38,6 @@ public class TargetingArrow : MonoBehaviour
             null,
             out startLocalPos);
 
-        // 2. 마우스 좌표를 캔버스 기준 로컬 좌표로 변환
         Vector2 endLocalPos;
         RectTransformUtility.ScreenPointToLocalPointInRectangle(
             canvasRect,

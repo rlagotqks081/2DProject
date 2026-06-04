@@ -54,10 +54,11 @@ public class HandManager : MonoBehaviour
     }
     public void SetupHand()
     {
-        for(int i = handLayoutGroup.childCount - 1; i >= 0; i--)
+        for (int i = handLayoutGroup.childCount - 1; i >= 0; i--)
         {
-            Destroy(handLayoutGroup.GetChild(i).gameObject);
+            handLayoutGroup.GetChild(i).gameObject.SetActive(false);
         }
+        handCardUIs.Clear();
     }
 
     /// <summary>
@@ -147,14 +148,7 @@ public class HandManager : MonoBehaviour
         yield break;
     }
 
-    public IEnumerator DiscardAnimation(GameObject cardObj)
-    {
-        cardObj.transform.DOScale(Vector3.zero, 0.2f).SetEase(Ease.InBack).OnComplete(() =>
-        {
-            cardObj.SetActive(false);
-        });
-        yield break;
-    }
+
 
 }
 

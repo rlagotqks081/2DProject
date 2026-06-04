@@ -1,13 +1,11 @@
 ﻿using System.Collections;
 using UnityEngine;
 
-// 1. 효과 인터페이스
 public interface ICardEffect
 {
     IEnumerator Execute();
 }
 
-// 2. 메서드를 효과로 감싸는 래퍼 클래스 (이게 핵심입니다!)
 public class TriggerEffectWrapper : ICardEffect
 {
     private RuntimeCard _card;

@@ -73,4 +73,12 @@ public class BuffManager : MonoBehaviour
             activeBuffs.Remove(target);
         }
     }
+    public void ClearTargetBuffs(GameObject target)
+    {
+        if (target == null) return;
+        if(activeBuffs.ContainsKey(target))
+        {
+            activeBuffs[target].ClearBuffs();
+        }
+    }
 }

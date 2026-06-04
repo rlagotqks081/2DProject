@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 using System.Collections;
+using System.Linq;
 
 public class BuffSystem : MonoBehaviour
 {
@@ -35,13 +36,19 @@ public class BuffSystem : MonoBehaviour
         return 0;
     }
 
+    public void ClearBuffs()
+    {
+        currentBuffs.Clear();
+    }
+
     public void RemoveBuff(BuffType type)
     {
         if (currentBuffs.ContainsKey(type)) currentBuffs.Remove(type);
     }
     public void TickTurnBuffs()
     {
-        foreach(BuffType type in currentBuffs.Keys)
+        Debug.Log($"byffststem - {this.gameObject}");
+        foreach(BuffType type in currentBuffs.Keys.ToList())
         {
             switch(type)
             {

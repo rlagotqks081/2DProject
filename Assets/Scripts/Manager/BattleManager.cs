@@ -411,4 +411,10 @@ public class BattleManager : MonoBehaviour
         yield break;
     }
 
+    public void AddActiveMonsterDic(Monster monster)
+    {
+        if (monster == null) return;
+        if (activeMonsters.Contains(monster)) return;
+        activeMonsters.Add(monster);
+    }
 }

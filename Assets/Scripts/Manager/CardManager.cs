@@ -45,7 +45,7 @@ public class CardManager : MonoBehaviour
         ExhaustPile.Clear();
     }
 
-    public void TestSetup()
+    public void BaseCardSetup()
     {
         AddCardOnDeck(1004);
         AddCardOnDeck(1012);
@@ -53,13 +53,18 @@ public class CardManager : MonoBehaviour
         AddCardOnDeck(1007);
         AddCardOnDeck(1011);
         AddCardOnDeck(1013);
-        SetupCards();
     }
 
     public void SetupCards()
     {
+        HandPile.Clear();
+        DiscardPile.Clear();
         DrawPile.Clear();
+        ExhaustPile.Clear();
+        HandManager.Instance.SetupHand();
+
         DrawPile.AddRange(CardDeck);
+        Debug.Log($"{DrawPile}");
         DrawCards(6);
     }
 
@@ -146,6 +151,15 @@ public class CardManager : MonoBehaviour
         if(newCard != null)
         {
             CardDeck.Add(newCard);
+        }
+    }
+
+    public void AddCardOnDeckByData(RuntimeCard card)
+    {
+        if(card != null && !CardDeck.Contains(card))
+        {
+            CardDeck.Add(card);
+            Debug.Log($"[CardManager] 카드 추가됨 {card}");
         }
     }
 

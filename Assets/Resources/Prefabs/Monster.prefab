@@ -122,6 +122,8 @@ MonoBehaviour:
   actionValue: 0
   actionIcon: {fileID: 4445638572130126323}
   actionText: {fileID: 7477525878698404945}
+  healthBar_Block: {fileID: 3441399938966331821}
+  blockValueText: {fileID: 1477309626438749619}
   runtimePatterns:
   - effects:
     - effectType: 0

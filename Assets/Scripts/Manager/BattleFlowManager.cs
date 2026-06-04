@@ -48,4 +48,9 @@ public class BattleFlowManager : MonoBehaviour
             TriggerGameOver(GameOverType.AllMonsterDead);
         }
     }
+
+    public void ResetSetting()
+    {
+        IsGameOver = false;
+    }
 }

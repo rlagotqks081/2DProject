@@ -8,6 +8,7 @@ public class Player : MonoBehaviour, IDamageable
     public BuffSystem _buffSystem { get; private set; }
     [Header("")]
     public Image fillImage;
+    public SpriteRenderer CharacterImg;
     public TextMeshProUGUI healthText;
     public TextMeshProUGUI nameText;
     [Header("Stats")]

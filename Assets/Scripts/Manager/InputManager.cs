@@ -11,12 +11,15 @@ public enum InputState
     SelectingTarget,
     SelectingCard,
     SelectedSkillCard,
-    Processing
+    Processing,
+    CardListPopupOpened,
+    Result
 }
 
 public class InputManager : MonoBehaviour
 {
     public static InputManager Instance { get; private set; }
+    private Stack<InputState> StateHistory = new Stack<InputState>();
     [Header("현재 입력 상태")]
     public InputState currentState = InputState.Idle;
 
@@ -72,6 +75,8 @@ public class InputManager : MonoBehaviour
                 break;
         }
     }
+
+    
     private void UpdateHoverTarget()
     {
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
@@ -113,7 +118,6 @@ public class InputManager : MonoBehaviour
         switch (currentState)
         {
             case InputState.Idle:
-                UpdateCurrentState(InputState.Processing);
                 selectedCardUI = CardManager.Instance.GetCardUI(card);
                 StartCoroutine(BattleManager.Instance.PlayCardRoutine(card));
                 break;
@@ -124,6 +128,13 @@ public class InputManager : MonoBehaviour
             case InputState.Processing:
                 Debug.Log("현재 카드를 클릭할 수 없는 상태입니다.");
                 break;
+            case InputState.Result:
+                CardManager.Instance.AddCardOnDeckByData(card);
+                UIManager.Instance.ResultCardChoiced();
+                break;
+            case InputState.CardListPopupOpened:
+                break;
+
         }
 
     }
@@ -145,6 +156,41 @@ public class InputManager : MonoBehaviour
         currentState = InputState.Idle;            // 상태를 기본으로 복귀
     }
 
+    public void OnCardDeckListButtonClicked()
+    {
+        if (currentState == InputState.CardListPopupOpened)
+        {
+            RestorePreState();
+            UIManager.Instance.CardListPopup.SetActive(false);
+            UIManager.Instance.SetBackgroundDark(false);
+        }
+        else
+        {
+            CancelSelection();
+            UpdateCurrentState(InputState.CardListPopupOpened, true);
+            UIManager.Instance.CardListPopup.SetActive(true);
+            UIManager.Instance.SetCardDeckList();
+            UIManager.Instance.SetBackgroundDark(true);
+        }
+    }
+
+    public void OnOpenMapButtonClicked()
+    {
+        if (currentState == InputState.CardListPopupOpened)
+        {
+            RestorePreState();
+            UIManager.Instance.MapPopup.SetActive(false);
+            UIManager.Instance.SetBackgroundDark(false);
+        }
+        else
+        {
+            CancelSelection();
+            UpdateCurrentState(InputState.CardListPopupOpened, true);
+            UIManager.Instance.MapPopup.SetActive(true);
+            UIManager.Instance.SetBackgroundDark(true);
+        }
+    }
+
     public void StartSelectingMultipleCards(int maxSelectCount, Action<List<RuntimeCard>> onConfirmed, bool isMandatory = true)
     {
         currentState = InputState.SelectingCard;
@@ -162,12 +208,33 @@ public class InputManager : MonoBehaviour
 
     }
 
+    public void RestorePreState()
+    {
+        if(StateHistory.Count > 0)
+        {
+            InputState preState = StateHistory.Pop();
+            if(preState == InputState.SelectingTarget || preState == InputState.SelectedSkillCard)
+            {
+                UpdateCurrentState(InputState.Idle);
+            }
+            else UpdateCurrentState(preState, true);
+        }
+        else
+        {
+            Debug.LogError("[InputManager] InputState 이전 상태가 없음");
+        }
+    }
+
     /// <summary>
-    /// 콜백함수안에서 직접수정하는게 아니면 무조건 이걸통해서 CurrentState를 바꿔야함!!!!!
+    /// InputState를 바꾸는 함수, Result 상태에선 isForceExecute에 true를 줘야 바꿀수있음
     /// </summary>
     /// <param name="state"></param>
-    public void UpdateCurrentState(InputState state)
+    /// <param name="isForceExecute">true면 강제로 변환, false면 특정상태일때 currentState가 바뀌지않음</param>
+    public void UpdateCurrentState(InputState state, bool isForceExecute = false)
     {
+        if (currentState == InputState.Result && !isForceExecute) return;
+        StateHistory.Push(currentState);
+
         currentState = state;
         if (currentState == InputState.Processing)
         {
@@ -177,10 +244,22 @@ public class InputManager : MonoBehaviour
         else if (currentState == InputState.Idle) 
         {
             UIManager.Instance.SetEndTurnButtonInteractable(true);
+            UIManager.Instance.SetConfirmButtonInteractable(false);
         }
-        else if (currentState != InputState.SelectingCard)
+        else if (currentState == InputState.SelectingCard)
         {
+            UIManager.Instance.SetEndTurnButtonInteractable(false);
             UIManager.Instance.SetConfirmButtonInteractable(true);
+        }
+        else if (currentState == InputState.Result)
+        {
+            UIManager.Instance.SetEndTurnButtonInteractable(false);
+            UIManager.Instance.SetConfirmButtonInteractable(false);
+        }
+        else
+        {
+            UIManager.Instance.SetEndTurnButtonInteractable(false);
+            UIManager.Instance.SetConfirmButtonInteractable(false);
         }
     }
 
@@ -278,5 +357,13 @@ public class InputManager : MonoBehaviour
 
         // 변수 및 상태 초기화
         selectedCardUI = null;
+    }
+
+    public void OnTestButtonClicked()
+    {
+        UpdateCurrentState(InputState.Idle, true);
+        UIManager.Instance.SetBackgroundDark(false);
+        UIManager.Instance.ResetAllUI();
+        GameManager.Instance.ChangeState(GameState.WinBattle);
     }
 }

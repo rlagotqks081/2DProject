@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -39,6 +40,7 @@ public class Monster : MonoBehaviour, IDamageable
             if (currentHp <= 0)
             {
                 BattleFlowManager.Instance.ChackBattleState();
+                BuffManager.Instance.RemoveBuffObj(this.gameObject);
             }
         }
     }
@@ -47,7 +49,7 @@ public class Monster : MonoBehaviour, IDamageable
         // 씬에 직접 배치된 경우를 위한 예외 처리
         if (OriginData != null && CurrentHp == 0)
         {
-            SetupMonster(OriginData);
+            //SetupMonster(OriginData);
         }
     }
 
@@ -59,10 +61,12 @@ public class Monster : MonoBehaviour, IDamageable
         maxHp = data.maxHp;
         CurrentHp = maxHp;
         currentBlock = 0;
+        nameText.text = data.monsterName;
 
         runtimePatterns = new List<MonsterPatternData>(data.patterns);
         currentPatternIndex = 0;
         buffSystem = GetComponent<BuffSystem>();
+        UpdateHealthBar();
         Debug.Log($"[Monster] '{monsterName}' 로드 완료. (HP: {maxHp})");
     }
     public void TakeDirectDamage(int damage, int count = 1)

@@ -32,25 +32,27 @@ public class CardUIEffect : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
     }
     public void OnPointerEnter(PointerEventData eventData)
     {
-        if (BattleFlowManager.Instance.IsGameOver) return;
         if (InputManager.Instance.currentState == InputState.SelectedSkillCard) return;
         if (isSelected || InputManager.Instance.currentState == InputState.Processing) return;
         if (InputManager.Instance != null && InputManager.Instance.currentState == InputState.SelectingTarget)
             return;
 
         transform.DOKill();
-
         UpdateOriginalTransformIndex();
 
+        transform.DOScale(originalScale * hoverScale, duration).SetEase(Ease.OutCubic);
+
+        if (InputManager.Instance.currentState == InputState.CardListPopupOpened) return;
+        if (InputManager.Instance.currentState == InputState.Result) return;
+
+        transform.DOLocalMoveY(transform.position.y + hoverMoveY, duration).SetEase(Ease.OutCubic);
         transform.SetAsLastSibling(); // UI를 맨 앞으로 보내서 가려지지 않게 처리
 
-        transform.DOScale(originalScale * hoverScale, duration).SetEase(Ease.OutCubic);
-        transform.DOLocalMoveY(originalPosition.y + hoverMoveY, duration).SetEase(Ease.OutCubic);
+        
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
-        if (BattleFlowManager.Instance.IsGameOver) return;
         if (InputManager.Instance.currentState == InputState.SelectedSkillCard) return;
         if (isSelected || InputManager.Instance.currentState == InputState.Processing) return;
         if (InputManager.Instance != null && InputManager.Instance.currentState == InputState.SelectingTarget)
@@ -69,6 +71,10 @@ public class CardUIEffect : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
         transform.SetSiblingIndex(originalTransformIndex);
 
         transform.DOScale(originalScale, duration).SetEase(Ease.OutCubic);
+
+        if (InputManager.Instance.currentState == InputState.Result) return;
+        if (InputManager.Instance.currentState == InputState.CardListPopupOpened) return;
+
         transform.DOLocalMove(originalPosition, duration).SetEase(Ease.OutCubic);
         transform.localRotation = originalRotation;
     }
