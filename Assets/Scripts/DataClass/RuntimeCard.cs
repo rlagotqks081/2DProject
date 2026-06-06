@@ -103,4 +103,5 @@ public class RuntimeCard   // 게임 플레이중 동적 생성되는 원본(Car
         }
         return true;
     }
+
 }

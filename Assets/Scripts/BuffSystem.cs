@@ -1,12 +1,17 @@
-﻿using UnityEngine;
+﻿using System.Collections;
 using System.Collections.Generic;
-using System.Collections;
 using System.Linq;
+using TMPro;
+using Unity.VisualScripting;
+using UnityEngine;
+using UnityEngine.UI;
+using static UnityEngine.GraphicsBuffer;
 
 public class BuffSystem : MonoBehaviour
 {
 
-    [SerializeField] private Dictionary<BuffType, int> currentBuffs = new Dictionary<BuffType, int>();
+    private Dictionary<BuffType, int> currentBuffs = new Dictionary<BuffType, int>();
+    private Dictionary<BuffType, GameObject> buffIcons = new Dictionary<BuffType, GameObject>();
 
     public void AddBuff(BuffType type, int value)
     {
@@ -20,6 +25,7 @@ public class BuffSystem : MonoBehaviour
         }
 
         if (currentBuffs[type] <= 0) currentBuffs.Remove(type);
+        UpdateBuffIcon(type);
     }
 
     public bool HasBuff(BuffType type)
@@ -39,15 +45,55 @@ public class BuffSystem : MonoBehaviour
     public void ClearBuffs()
     {
         currentBuffs.Clear();
+        foreach(GameObject obj in buffIcons.Values)
+        {
+            obj.SetActive(false);
+        }
     }
 
+    public void AddBuffIcon(BuffType type)
+    {
+        if (buffIcons.ContainsKey(type)) return;
+        GameObject newIcon = SpawnManager.Instance.SpawnBuffIcons(this);
+        if (newIcon != null)
+        {
+            newIcon.GetComponent<Image>().sprite = Resources.Load<Sprite>("Sprite/Buff_Icon/" + type.ToString() + "_Icon");
+            buffIcons.Add(type, newIcon);
+        }
+
+    }
     public void RemoveBuff(BuffType type)
     {
         if (currentBuffs.ContainsKey(type)) currentBuffs.Remove(type);
     }
+    public void UpdateBuffIcon(BuffType type)
+    {
+        if (!buffIcons.ContainsKey(type))
+        {
+            AddBuffIcon(type);
+        }
+
+
+        if (!currentBuffs.ContainsKey(type))
+        {
+            buffIcons[type].SetActive(false);
+        }
+        else
+        {
+            buffIcons[type].GetComponentInChildren<TextMeshProUGUI>().text = currentBuffs[type].ToString();
+            buffIcons[type].SetActive(true);
+        }
+    }
+    public void UpdateAllBuffIcon()
+    {
+        foreach(BuffType type in buffIcons.Keys)
+        {
+            UpdateBuffIcon(type);
+        }
+    }
     public void TickTurnBuffs()
     {
-        Debug.Log($"byffststem - {this.gameObject}");
+        Debug.Log($"buffststem - {this.gameObject}");
         foreach(BuffType type in currentBuffs.Keys.ToList())
         {
             switch(type)
@@ -61,4 +107,6 @@ public class BuffSystem : MonoBehaviour
             }
         }
     }
+
+    
 }

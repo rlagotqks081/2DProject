@@ -8,6 +8,7 @@ public class CardDatabase : MonoBehaviour
 
 
     public Dictionary<int, CardData> cardDictionary= new Dictionary<int, CardData>();
+    public List<int> cardIDList = new List<int>();
 
     private void Awake()
     {
@@ -37,6 +38,7 @@ public class CardDatabase : MonoBehaviour
         foreach (var data in wrapper.cards)
         {
             cardDictionary[data.cardID] = data;
+            cardIDList.Add(data.cardID);
         }
 
         Debug.Log($"[CardDatabase] 총 {cardDictionary.Count}개의 카드가 로드되었습니다.");
@@ -45,5 +47,10 @@ public class CardDatabase : MonoBehaviour
     public CardData GetCard(int id)
     {
         return cardDictionary.TryGetValue(id, out CardData data) ? data : null;
+    }
+    public CardData GetRandomCard()
+    {
+        int index = Random.Range(0, cardIDList.Count);
+        return cardDictionary[cardIDList[index]];
     }
 }

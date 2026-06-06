@@ -161,7 +161,7 @@ public class InputManager : MonoBehaviour
         {
             RestorePreState();
             UIManager.Instance.CardListPopup.SetActive(false);
-            UIManager.Instance.SetBackgroundDark(false);
+            UIManager.Instance.SetPopupBackGroundDark(false);
         }
         else if (currentState == InputState.MapOpened)
         {
@@ -176,7 +176,7 @@ public class InputManager : MonoBehaviour
             UpdateCurrentState(InputState.CardListPopupOpened, true);
             UIManager.Instance.CardListPopup.SetActive(true);
             UIManager.Instance.SetCardDeckList();
-            UIManager.Instance.SetBackgroundDark(true);
+            UIManager.Instance.SetPopupBackGroundDark(true);
         }
     }
 
@@ -186,7 +186,7 @@ public class InputManager : MonoBehaviour
         {
             RestorePreState();
             UIManager.Instance.MapPopup.SetActive(false);
-            UIManager.Instance.SetBackgroundDark(false);
+            UIManager.Instance.SetPopupBackGroundDark(false);
         }
         else if (currentState == InputState.CardListPopupOpened)
         {
@@ -199,8 +199,13 @@ public class InputManager : MonoBehaviour
             CancelSelection();
             UpdateCurrentState(InputState.MapOpened, true);
             UIManager.Instance.MapPopup.SetActive(true);
-            UIManager.Instance.SetBackgroundDark(true);
+            UIManager.Instance.SetPopupBackGroundDark(true);
         }
+    }
+
+    public void OnGameStartButtonClicked()
+    {
+        GameManager.Instance.ChangeState(GameState.Map);
     }
 
     public void StartSelectingMultipleCards(int maxSelectCount, Action<List<RuntimeCard>> onConfirmed, bool isMandatory = true)
@@ -377,9 +382,8 @@ public class InputManager : MonoBehaviour
 
     public void OnTestButtonClicked()
     {
-        UpdateCurrentState(InputState.Idle, true);
         UIManager.Instance.SetBackgroundDark(false);
-        UIManager.Instance.ResetAllUI();
+        UIManager.Instance.ResetRewardUI();
         GameManager.Instance.ChangeState(GameState.WinBattle);
     }
 }

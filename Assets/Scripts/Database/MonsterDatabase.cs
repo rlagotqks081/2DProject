@@ -5,6 +5,7 @@ public class MonsterDatabase : MonoBehaviour
 {
     public static MonsterDatabase Instance;
     private Dictionary<string, MonsterData> MonsterDict = new Dictionary<string, MonsterData>();
+    private List<string> MonsterID = new List<string>();
 
     private void Awake()
     {
@@ -28,6 +29,7 @@ public class MonsterDatabase : MonoBehaviour
             if(!MonsterDict.ContainsKey(monster.monsterKey))
             {
                 MonsterDict.Add(monster.monsterKey, monster);
+                MonsterID.Add(monster.monsterKey);
             }
         }
         Debug.Log($"[MonsterDatabase] DB 로드 완료, 총 {MonsterDict.Count} 마리 ");
@@ -40,5 +42,10 @@ public class MonsterDatabase : MonoBehaviour
             return MonsterDict[monsterKey];
         }
         return null;
+    }
+    public MonsterData GetRandomMonster()
+    {
+        int randomIndex = Random.Range(0, MonsterID.Count);
+        return MonsterDict[MonsterID[randomIndex]];
     }
 }

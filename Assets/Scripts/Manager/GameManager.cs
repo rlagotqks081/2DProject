@@ -1,13 +1,13 @@
 ﻿using Unity.VisualScripting;
 using UnityEngine;
 
-public enum GameState { Start, Monster, Shop, Random, Boss, WinBattle, LoseBattle, Map }
+public enum GameState { Main, Start, Monster, Shop, Random, Boss, WinBattle, LoseBattle, Map }
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
 
 
-
+    public bool isFirstMapSelect = true;
     [Header("Current State")]
     public GameState currentState;
 
@@ -38,13 +38,11 @@ public class GameManager : MonoBehaviour
         {
             case GameState.Start:
                 SetupGame();
-
-                ChangeState(GameState.Monster); // 테스트용 바로 전투돌입
+                UIManager.Instance.MainMenuUI.SetActive(true);
                 break;
             case GameState.Monster:
                 Debug.Log("[GameManager] 전투 시작]");
                 SetupBattle();
-                player.OnStartTurn();
                 break;
             case GameState.Shop:
                 break;
@@ -55,13 +53,12 @@ public class GameManager : MonoBehaviour
                 // 패배 결과
                 break;
             case GameState.WinBattle:
-                Destroy(currentMonster.gameObject);
-                currentMonster = SpawnManager.Instance.SpawnMonster("10001").GetComponent<Monster>();
-                ChangeState(GameState.Monster);
+                ChangeState(GameState.Map);
                 break;
             case GameState.LoseBattle:
                 break;
             case GameState.Map:
+                UIManager.Instance.OnClickMapOpenButton();
                 break;
         }
     }
@@ -83,17 +80,21 @@ public class GameManager : MonoBehaviour
 
     private void SetupBattle()
     {
+        if(currentMonster != null)
+        {
+            Destroy(currentMonster.gameObject);
+        }
         Debug.Log("GameManager - SetupBattle 실행");
         BattleFlowManager.Instance.ResetSetting();
+        player.OnStartTurn();
         CardManager.Instance.SetupCards();
         BuffManager.Instance.ClearTargetBuffs(player.gameObject);
         // 여기서 몬스터 랜덤소환 or 몬스터 소환
+        currentMonster = SpawnManager.Instance.SpawnRandomMonster().GetComponent<Monster>();
 
-        // BuffManager.Instance.AddBuffObj(currentMonster.gameObject);
-        // BuffManager.Instance.ClearTargetBuffs(currentMonster.gameObject);
         currentMonster.UpdateNextActionIcon();
-
-
+        InputManager.Instance.UpdateCurrentState(InputState.Idle, true);
+        UIManager.Instance.ResetAllUI();
     }
 
 

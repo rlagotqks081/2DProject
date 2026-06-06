@@ -21,6 +21,7 @@ public class Monster : MonoBehaviour, IDamageable
     public int currentHp;
     public int currentBlock;
     public int actionValue;
+    public SpriteRenderer monsterImage;
     public SpriteRenderer actionIcon;
     public TextMeshPro actionText;
     public GameObject healthBar_Block;
@@ -62,11 +63,12 @@ public class Monster : MonoBehaviour, IDamageable
         CurrentHp = maxHp;
         currentBlock = 0;
         nameText.text = data.monsterName;
-
+        monsterImage.sprite = Resources.Load<Sprite>(data.monsterIcon);
         runtimePatterns = new List<MonsterPatternData>(data.patterns);
         currentPatternIndex = 0;
         buffSystem = GetComponent<BuffSystem>();
         UpdateHealthBar();
+        UpdateBlockIcon();
         Debug.Log($"[Monster] '{monsterName}' 로드 완료. (HP: {maxHp})");
     }
     public void TakeDirectDamage(int damage, int count = 1)
@@ -166,7 +168,7 @@ public class Monster : MonoBehaviour, IDamageable
             case MonsterActionType.Attack:
                 actionIcon.sprite = Resources.Load<Sprite>("Sprite/Battle_Icon/Attack_Icon");
                 actionValue = runtimePatterns[currentPatternIndex].effects[0].value;
-                actionText.text = actionValue.ToString();
+                actionText.text = CardCalculator.GetMonsterAttackValue(actionValue, this).ToString();
                 break;
             case MonsterActionType.Defend:
                 actionIcon.sprite = Resources.Load<Sprite>("Sprite/Battle_Icon/Defend_Icon");

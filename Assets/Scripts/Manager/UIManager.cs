@@ -7,26 +7,45 @@ using UnityEngine.UI;
 public class UIManager : MonoBehaviour
 {
     public static UIManager Instance { get; private set; }
-    [SerializeField] private GameObject cardSelectUI;
+    [SerializeField] private Image BackgroundDark_Default;
+    [SerializeField] private GameObject cardPrefab;
+    [SerializeField] private GameObject RewardButtonPrefab;
+
+    [Header("BattleUI")]
     [SerializeField] private CanvasGroup BattleCanvasGroup; // 배틀화면의 부모 canvasgroup
+    [SerializeField] public Button confirmButton;
+    [SerializeField] public Button endTurnButton;
+    [SerializeField] private GameObject cardSelectUI;
+    [SerializeField] private TextMeshProUGUI PlayerEnergyText;
+
+    [Header("ResultUI")]
     [SerializeField] private CanvasGroup resultCanvasGroup; // 결과화면의 부모 canvasgroup
-    [SerializeField] public GameObject CardListPopup;
-    [SerializeField] public GameObject MapPopup;
-    [SerializeField] public RectTransform CardListContentparent;
     [SerializeField] private GameObject gameOverPanel;
     [SerializeField] private GameObject victoryPanel;
-    [SerializeField] private GameObject cardPrefab;
-    [SerializeField] private TextMeshProUGUI PlayerEnergyText;
     [SerializeField] private CanvasGroup CardChoiceUI;
     [SerializeField] private CanvasGroup RewardUI;
-    [SerializeField] private Image BackGround_Dark;
+    [SerializeField] private RectTransform RewardButtonContainer;
     [SerializeField] private CardUI CardUI_1;
     [SerializeField] private CardUI CardUI_2;
     [SerializeField] private CardUI CardUI_3;
 
-    public Button confirmButton; 
-    public Button endTurnButton;
-    public Button CardDeckListButton;
+    [Header("DefaultUI")]
+    [SerializeField] public GameObject HighBarUI;
+
+    [Header("PopupUI")]
+    [SerializeField] private Image BackgroundDark_Popup;
+    [SerializeField] public RectTransform CardListContentparent;
+    [SerializeField] public GameObject CardListPopup;
+    [SerializeField] public GameObject MapPopup;
+
+    [Header("MainMenuUI")]
+    [SerializeField] public GameObject MainMenuUI;
+
+
+
+
+
+
     public Button TestButton;
     private void Awake()
     {
@@ -55,6 +74,7 @@ public class UIManager : MonoBehaviour
     public void OnClickCardDeckListButton() => InputManager.Instance.OnCardDeckListButtonClicked();
     public void OnClickTestButton() => InputManager.Instance.OnTestButtonClicked();
     public void OnClickMapOpenButton() => InputManager.Instance.OnOpenMapButtonClicked();
+    public void OnClickGameStartButton() => InputManager.Instance.OnGameStartButtonClicked();
 
     public void UpdatePlayerEnergyText()
     {
@@ -67,13 +87,21 @@ public class UIManager : MonoBehaviour
     private void HandleGameOver(GameOverType type)
     {
         StartCoroutine(ClearBattleUI());
+        ClearAllChildren(RewardButtonContainer);
         InputManager.Instance.UpdateCurrentState(InputState.Result);
         SetBackgroundDark(true);
         gameOverPanel.SetActive(type == GameOverType.PlayerDead);
         victoryPanel.SetActive(type == GameOverType.AllMonsterDead);
+        SpawnRewardButtons();
         AddDataOnResultChoiceCard();
         StartCoroutine(AppearUIByFadeAction(resultCanvasGroup));
         
+    }
+
+    private void SpawnRewardButtons()
+    {
+        GameObject button = Instantiate(RewardButtonPrefab, RewardButtonContainer);
+        button.GetComponent<Button>().onClick.AddListener(CardResultChoice);
     }
 
     private IEnumerator ClearBattleUI()
@@ -133,22 +161,43 @@ public class UIManager : MonoBehaviour
     {
         yield return group.DOFade(0f, 0.3f).SetEase(Ease.OutQuad).WaitForCompletion();
         group.gameObject.SetActive(false);
+        group.DOFade(1f, 0f);
     }
 
     public void SetBackgroundDark(bool isDark)
     {
         if (isDark)
         {
-            BackGround_Dark.gameObject.SetActive(true);
-            BackGround_Dark.DOFade(0.9f, 0.3f).SetEase(Ease.Linear).WaitForCompletion();
+            BackgroundDark_Default.gameObject.SetActive(true);
+            BackgroundDark_Default.DOFade(0.9f, 0.3f).SetEase(Ease.Linear).WaitForCompletion();
         }
         else
         {
-            if (InputManager.Instance.currentState == InputState.Result) return;
-            BackGround_Dark.DOFade(0f, 0.3f).SetEase(Ease.Linear).WaitForCompletion();
-            BackGround_Dark.gameObject.SetActive(false);
+            BackgroundDark_Default.DOFade(0f, 0.3f).SetEase(Ease.Linear).WaitForCompletion();
+            BackgroundDark_Default.gameObject.SetActive(false);
         }
+    }
+    public void SetPopupBackGroundDark(bool isDark)
+    {
+        if (isDark)
+        {
+            BackgroundDark_Popup.gameObject.SetActive(true);
+            BackgroundDark_Popup.DOFade(0.9f, 0.3f).SetEase(Ease.Linear).WaitForCompletion();
+        }
+        else
+        {
+            if (InputManager.Instance.currentState == InputState.Result)
+            {
+                BackgroundDark_Popup.gameObject.SetActive(false);
+                SetBackgroundDark(true);
+            }
+            else
+            {
+                BackgroundDark_Popup.DOFade(0f, 0.3f).SetEase(Ease.Linear).WaitForCompletion();
+                BackgroundDark_Popup.gameObject.SetActive(false);
+            }
 
+        }
     }
 
     public void SetCardDeckList()
@@ -168,9 +217,9 @@ public class UIManager : MonoBehaviour
 
     public void AddDataOnResultChoiceCard()
     {
-        CardUI_1.SetupUI(new RuntimeCard(CardDatabase.Instance.GetCard(1001)));
-        CardUI_2.SetupUI(new RuntimeCard(CardDatabase.Instance.GetCard(1002)));
-        CardUI_3.SetupUI(new RuntimeCard(CardDatabase.Instance.GetCard(1003)));
+        CardUI_1.SetupUI(new RuntimeCard(CardDatabase.Instance.GetRandomCard()));
+        CardUI_2.SetupUI(new RuntimeCard(CardDatabase.Instance.GetRandomCard()));
+        CardUI_3.SetupUI(new RuntimeCard(CardDatabase.Instance.GetRandomCard()));
     }
 
     public void ResetAllUI()
@@ -179,5 +228,27 @@ public class UIManager : MonoBehaviour
         resultCanvasGroup.gameObject.SetActive(false);
         ShowCardSelectUI(false);
     }
+
+    public void ClearAllChildren(RectTransform parent)
+    {
+        if (parent == null) return;
+
+        for (int i = parent.childCount - 1; i >= 0; i--)
+        {
+            Transform child = parent.GetChild(i);
+
+            Destroy(child.gameObject);
+        }
+    }
+
+    public void ResetRewardUI()
+    {
+        CardChoiceUI.gameObject.SetActive(false);
+        RewardUI.gameObject.SetActive(true);
+        RewardButtonContainer.gameObject.SetActive(true);  
+        confirmButton.gameObject.SetActive(true);
+    }
+
+
 
 }

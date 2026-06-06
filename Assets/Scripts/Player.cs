@@ -63,6 +63,7 @@ public class Player : MonoBehaviour, IDamageable
     {
         currentEnergy = maxEnergy;
         block = 0;
+        UIManager.Instance.UpdatePlayerEnergyText();
     }
 
     public void TakeDamage(int damage, int count = 1)

@@ -63,7 +63,7 @@ public class MapGenerator : MonoBehaviour
             int currentCount = currentLayer.nodes.Count;
             int nextCount = nextLayer.nodes.Count;
 
-            // 1단계: 아래층 노드에서 위층 노드로 인접한 범위 내에서 연결하기
+            // 아래층 노드에서 위층 노드로 인접한 범위 내에서 연결하기
             foreach (MapNode currentNode in currentLayer.nodes)
             {
                 // 현재 내 위치(x)를 기준으로 다음 층에서 정렬 상 가장 가까운 인덱스 비율을 계산
@@ -208,6 +208,13 @@ public class MapGenerator : MonoBehaviour
         }
 
         mapDisplayer.RefreshMapVisuals();
+        UIManager.Instance.OnClickMapOpenButton();
+        if(GameManager.Instance.isFirstMapSelect)
+        {
+            UIManager.Instance.MainMenuUI.SetActive(false);
+            UIManager.Instance.HighBarUI.SetActive(true);
+        }
+
         switch(clickedNode.nodeType)
         {
             case NodeType.NormalEnemy:
@@ -217,11 +224,19 @@ public class MapGenerator : MonoBehaviour
                 GameManager.Instance.ChangeState(GameState.Monster);
                 break;
             case NodeType.Event:
+                GameManager.Instance.ChangeState(GameState.Map);
                 break;
             case NodeType.Rest:
+                if (clickedNode.y == 14) GameManager.Instance.QuitGame();
+                else GameManager.Instance.ChangeState(GameState.Map);
                 break;
             case NodeType.Boss:
+                GameManager.Instance.ChangeState(GameState.Map);
                 break;
+            case NodeType.Shop:
+                GameManager.Instance.ChangeState(GameState.Map);
+                break;
+
         }
         
     }

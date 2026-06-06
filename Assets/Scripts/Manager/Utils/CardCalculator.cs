@@ -162,4 +162,26 @@ public static class CardCalculator
         }
         return false;
     }
+
+    public static int GetMonsterAttackValue(int damage, Monster monster)
+    {
+        if (monster == null) return 0;
+        if (monster.buffSystem == null) return 0;
+        damage += monster.buffSystem.GetBuffValue(BuffType.Strength);
+
+        if(Player.Instance._buffSystem.HasBuff(BuffType.Vulnerable))
+        {
+            damage = Mathf.FloorToInt(damage * 1.5f);
+        }
+
+        if(monster.buffSystem.HasBuff(BuffType.Weak))
+        {
+            damage = Mathf.FloorToInt(damage * 0.75f);
+        }
+
+
+
+
+        return Mathf.Max(0, damage);
+    }
 }

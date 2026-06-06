@@ -10,7 +10,6 @@ public class BattleManager : MonoBehaviour
     [SerializeField] public int turnCount = 0;
     // 필드에 존재하는 활성화된 몬스터들을 관리하는 리스트
     [SerializeField] public List<Monster> activeMonsters = new List<Monster>();
-    [SerializeField] public List<Monster> deadMonsters = new List<Monster>();
 
     private List<RuntimeCard> selectedCards = new List<RuntimeCard>();
     private int requiredCount;

@@ -37,6 +37,7 @@ public class MonsterData : ScriptableObject
     public string monsterKey;
     public string monsterName;
     public int maxHp;
+    public string monsterIcon;
 
     [Header("몬스터 패턴")]
     [Tooltip("몬스터가 순서대로 실행할 행동 리스트")]

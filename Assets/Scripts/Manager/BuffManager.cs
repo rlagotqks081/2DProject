@@ -45,7 +45,7 @@ public class BuffManager : MonoBehaviour
             activeBuffs.Add(target, target.GetComponent<BuffSystem>());
         }
         activeBuffs[target].RemoveBuff(type);
-
+        activeBuffs[target].UpdateBuffIcon(type);
     }
     public bool IsObjHasBuff(GameObject target, BuffType type)
     {

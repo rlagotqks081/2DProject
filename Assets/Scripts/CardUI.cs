@@ -45,9 +45,18 @@ public class CardUI : MonoBehaviour, IPointerClickHandler
     /// </summary>
     public void UpdateUI(Monster target = null) // 카드 설명에서 강화된 수치는 어떻게 적용할지 아직 추가하지않음
     {
-        if (costText != null && TargetRuntimeCard != null)
+        if (TargetRuntimeCard == null) return;
+
+        if (costText != null)
         {
-            costText.text = TargetRuntimeCard.GetCalculatedCost().ToString();
+            if(CardCalculator.IsSpendingAllCosts(TargetRuntimeCard))
+            {
+                costText.text = "X";
+            }
+            else
+            {
+                costText.text = TargetRuntimeCard.GetCalculatedCost().ToString();
+            }
         }
         if (nameText != null) nameText.text = TargetRuntimeCard.OriginData.cardName;
         if (descText != null) descText.text = TargetRuntimeCard.GetDescription(DescriptionType.Default,target);

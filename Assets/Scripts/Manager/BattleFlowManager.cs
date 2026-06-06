@@ -33,7 +33,6 @@ public class BattleFlowManager : MonoBehaviour
 
         OnGameOver?.Invoke(type);
 
-        //UIManager.Instance.ShowResultScreen();
     }
     public void ChackBattleState()
     {

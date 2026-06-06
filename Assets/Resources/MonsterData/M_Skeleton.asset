@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 261b8a1f69a119c4d862761f12b4c88d, type: 3}
+  m_Name: M_Skeleton
+  m_EditorClassIdentifier: Assembly-CSharp::MonsterData
+  monsterKey: 10003
+  monsterName: "\uD574\uACE8 \uBCD1\uC0AC"
+  maxHp: 50
+  monsterIcon: Sprite/MonsterImage/MonsterSkeleton_Image
+  patterns:
+  - effects:
+    - effectType: 0
+      value: 20
+      buffType: 0
+      executeCount: 0
+    - effectType: 1
+      value: 10
+      buffType: 0
+      executeCount: 0
