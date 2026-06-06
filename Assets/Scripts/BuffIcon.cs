@@ -1,16 +1,27 @@
+﻿using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
-public class BuffIcons : MonoBehaviour
+public class BuffIcon : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerMoveHandler
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    public BuffType type;
+
+
+    public void OnPointerEnter(PointerEventData eventData)
     {
-        
+        UIManager.Instance.SetBuffPopup(true, type);
+        UIManager.Instance.UpdateBuffPopupPosition();
     }
 
-    // Update is called once per frame
-    void Update()
+    public void OnPointerExit(PointerEventData eventData)
     {
-        
+        UIManager.Instance.SetBuffPopup(false, type);
     }
+
+    public void OnPointerMove(PointerEventData eventData) 
+    {
+        UIManager.Instance.UpdateBuffPopupPosition();
+    }
+
+
 }

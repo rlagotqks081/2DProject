@@ -57,8 +57,9 @@ public class BuffSystem : MonoBehaviour
         GameObject newIcon = SpawnManager.Instance.SpawnBuffIcons(this);
         if (newIcon != null)
         {
-            newIcon.GetComponent<Image>().sprite = Resources.Load<Sprite>("Sprite/Buff_Icon/" + type.ToString() + "_Icon");
+            newIcon.GetComponent<Image>().sprite = SpriteDatabase.GetBuffSprite(type);
             buffIcons.Add(type, newIcon);
+            buffIcons[type].GetComponent<BuffIcon>().type = type;
         }
 
     }

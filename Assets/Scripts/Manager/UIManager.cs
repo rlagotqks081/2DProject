@@ -37,6 +37,10 @@ public class UIManager : MonoBehaviour
     [SerializeField] public RectTransform CardListContentparent;
     [SerializeField] public GameObject CardListPopup;
     [SerializeField] public GameObject MapPopup;
+    [SerializeField] public GameObject BuffDescPopup;
+    [SerializeField] public Image BuffPopupIcon;
+    [SerializeField] public TextMeshProUGUI BuffPopupTitle;
+    [SerializeField] public TextMeshProUGUI BuffPopupDesc;
 
     [Header("MainMenuUI")]
     [SerializeField] public GameObject MainMenuUI;
@@ -69,6 +73,8 @@ public class UIManager : MonoBehaviour
             BattleFlowManager.Instance.OnGameOver += HandleGameOver;
         }
     }
+
+
 
     public void OnClickConfirmButton() => InputManager.Instance.OnConfirmButtonClicked();
     public void OnClickCardDeckListButton() => InputManager.Instance.OnCardDeckListButtonClicked();
@@ -249,6 +255,39 @@ public class UIManager : MonoBehaviour
         confirmButton.gameObject.SetActive(true);
     }
 
+    public void SetBuffPopup(bool isactive, BuffType type)
+    {
+        if(isactive)
+        {
+            BuffPopupIcon.sprite = SpriteDatabase.GetBuffSprite(type);
+            BuffPopupTitle.text = StringDatabase.GetBuffTitle(type);
+            BuffPopupDesc.text = StringDatabase.GetBuffDesc(type);
+            BuffDescPopup.SetActive(isactive);
+            LayoutRebuilder.ForceRebuildLayoutImmediate(BuffDescPopup.GetComponent<RectTransform>());
+        }
+        else
+        {
+            BuffDescPopup.SetActive(isactive);
+        }
+    }
+
+    public void UpdateBuffPopupPosition()
+    {
+        RectTransform popupTransform = BuffDescPopup.GetComponent<RectTransform>();
+        Vector3 mousePos = Input.mousePosition;
+
+        float width = popupTransform.rect.width;
+        float height = popupTransform.rect.height;
+
+        Vector3 targetPos = mousePos;
+
+        if (targetPos.x + width > Screen.width)
+        {
+            targetPos.x = mousePos.x - width;
+        }
+
+        popupTransform.position = targetPos;
+    }
 
 
 }

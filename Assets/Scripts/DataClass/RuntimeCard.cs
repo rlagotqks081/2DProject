@@ -34,7 +34,7 @@ public class RuntimeCard   // 게임 플레이중 동적 생성되는 원본(Car
 
     public string GetDescription(DescriptionType desType, Monster target = null)
     {
-        return DescriptionGenerator.Generate(this, desType, target);
+        return DescriptionGenerator.GenerateCardDesc(this, desType, target);
     }
     public string GetOriginalDesc()
     {

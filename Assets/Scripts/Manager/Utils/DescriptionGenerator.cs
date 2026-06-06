@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 public static class DescriptionGenerator
 {
-    public static string Generate(RuntimeCard card, DescriptionType desType, Monster target = null)
+    public static string GenerateCardDesc(RuntimeCard card, DescriptionType desType, Monster target = null)
     {
         if (card == null) return null;
         string desc = card.GetOriginalDesc();
@@ -60,4 +60,5 @@ public static class DescriptionGenerator
         }
         return desc;
     }
+
 }

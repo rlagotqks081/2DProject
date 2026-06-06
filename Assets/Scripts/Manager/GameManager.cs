@@ -21,11 +21,13 @@ public class GameManager : MonoBehaviour
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
+            SpriteDatabase.LoadAllBuffs();
         }
         else Destroy(gameObject);
     }
     void Start()
     {
+
         player = Player.Instance;
         ChangeState(GameState.Start);
     }
