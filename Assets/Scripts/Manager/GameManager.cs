@@ -101,23 +101,5 @@ public class GameManager : MonoBehaviour
 
 
 
-    //public void ProcessMonsterAction(GameObject monsterObj, MonsterAction action)
-    //{
-    //    foreach (SubEffect effect in action.subEffects)
-    //    {
-    //        switch (effect.effectType)
-    //        {
-    //            case "Attack":
-    //                break;
-    //            case "Defend":
-    //                break;
-    //            case "Buff_Vulnerable":
-    //                break;
-    //            case "Buff_Strength":
-    //                break;
 
-    //        }
-    //    }
-
-    //}
 }

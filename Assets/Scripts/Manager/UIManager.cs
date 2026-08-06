@@ -10,6 +10,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Image BackgroundDark_Default;
     [SerializeField] private GameObject cardPrefab;
     [SerializeField] private GameObject RewardButtonPrefab;
+    [SerializeField] private RectTransform UICanvasRect;
 
     [Header("BattleUI")]
     [SerializeField] private CanvasGroup BattleCanvasGroup; // 배틀화면의 부모 canvasgroup
@@ -41,6 +42,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] public Image BuffPopupIcon;
     [SerializeField] public TextMeshProUGUI BuffPopupTitle;
     [SerializeField] public TextMeshProUGUI BuffPopupDesc;
+    [SerializeField] public float buffTooltipWidth = 520;
 
     [Header("MainMenuUI")]
     [SerializeField] public GameObject MainMenuUI;
@@ -149,6 +151,9 @@ public class UIManager : MonoBehaviour
 
     public void CardResultChoice()
     {
+        CardUI_1.UpdateUI();
+        CardUI_2.UpdateUI();
+        CardUI_3.UpdateUI();
         StartCoroutine(DisableUIByFadeAction(RewardUI));
         StartCoroutine(AppearUIByFadeAction(CardChoiceUI));
     }
@@ -276,14 +281,12 @@ public class UIManager : MonoBehaviour
         RectTransform popupTransform = BuffDescPopup.GetComponent<RectTransform>();
         Vector3 mousePos = Input.mousePosition;
 
-        float width = popupTransform.rect.width;
-        float height = popupTransform.rect.height;
 
         Vector3 targetPos = mousePos;
 
-        if (targetPos.x + width > Screen.width)
+        if (targetPos.x + buffTooltipWidth > UICanvasRect.rect.width)
         {
-            targetPos.x = mousePos.x - width;
+            targetPos.x = mousePos.x - buffTooltipWidth;
         }
 
         popupTransform.position = targetPos;

@@ -30,8 +30,14 @@ public class MonsterDatabase : MonoBehaviour
             {
                 MonsterDict.Add(monster.monsterKey, monster);
                 MonsterID.Add(monster.monsterKey);
-            }
-        }
+            }// 치장아이템 데이터, 사용할지는 모르겠음
+            [CreateAssetMenu(fileName = "NewCosmeticItem", menuName = "ScriptableObject/Cosmetic")]
+            public class CosmeticItem : ItemBase
+    {
+
+        // 치장 관련 변수 적기
+    }
+}
         Debug.Log($"[MonsterDatabase] DB 로드 완료, 총 {MonsterDict.Count} 마리 ");
     }
 

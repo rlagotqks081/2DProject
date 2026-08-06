@@ -74,6 +74,7 @@ public class Monster : MonoBehaviour, IDamageable
     public void TakeDirectDamage(int damage, int count = 1)
     {
         CurrentHp -= damage;
+        UpdateHealthBar();
     }
     public void TakeDamage(int damage, int count = 1)
     {
@@ -161,6 +162,7 @@ public class Monster : MonoBehaviour, IDamageable
         UpdateNextActionIcon();
     }
 
+    // 행동아이콘의 생성기준은 일단 첫번째 행동을 기준으로 정함
     public void UpdateNextActionIcon()
     {
         switch (runtimePatterns[currentPatternIndex].effects[0].effectType)  // 몬스터의 다음 행동 아이콘 업데이트
@@ -173,7 +175,7 @@ public class Monster : MonoBehaviour, IDamageable
             case MonsterActionType.Defend:
                 actionIcon.sprite = Resources.Load<Sprite>("Sprite/Battle_Icon/Defend_Icon");
                 actionValue = runtimePatterns[currentPatternIndex].effects[0].value;
-                actionText.text = actionValue.ToString();
+                actionText.text = UtilManager.CalculateFinalBlock(actionValue, this.gameObject).ToString();
                 break;
             case MonsterActionType.Buff:
                 // actionIcon.sprite = Resources.Load<Sprite>("Sprite/Battle_Icon/Buff_Icon");

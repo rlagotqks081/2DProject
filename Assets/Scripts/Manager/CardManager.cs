@@ -53,6 +53,9 @@ public class CardManager : MonoBehaviour
         AddCardOnDeck(1007);
         AddCardOnDeck(1011);
         AddCardOnDeck(1013);
+        AddCardOnDeck(1009);
+        AddCardOnDeck(1003);
+        AddCardOnDeck(1002);
     }
 
     public void SetupCards()
@@ -64,6 +67,7 @@ public class CardManager : MonoBehaviour
         HandManager.Instance.SetupHand();
 
         DrawPile.AddRange(CardDeck);
+        ShuffleList(DrawPile);
         Debug.Log($"{DrawPile}");
         DrawCards(6);
     }
@@ -102,13 +106,13 @@ public class CardManager : MonoBehaviour
         List<RuntimeCard> tempCards = new List<RuntimeCard>(HandPile);
         foreach(RuntimeCard card in tempCards)
         {
-            yield return new WaitForSeconds(0.1f);
             if(HandPile.Contains(card))
             {
                 HandPile.Remove(card);
                 DiscardPile.Add(card);
                 StartCoroutine(HandManager.Instance.RemoveCardFromHand(activeCardUIs[card]));
             }
+            yield return new WaitForSeconds(0.1f);
         }
         yield break;
     }
@@ -139,7 +143,7 @@ public class CardManager : MonoBehaviour
         if (DiscardPile.Count == 0) return;
         DrawPile.AddRange(DiscardPile);
         DiscardPile.Clear();
-        // 여기서 DrawPile 셔플하는 로직 추가하기
+        ShuffleList(DrawPile);
     }
 
     /// <summary>
@@ -177,5 +181,16 @@ public class CardManager : MonoBehaviour
             return activeCardUIs[card];
         }
         return null;
+    }
+    public void ShuffleList(List<RuntimeCard> list)
+    {
+        for (int i = 0; i < list.Count; i++)
+        {
+            int randomIndex = Random.Range(i, list.Count);
+
+            RuntimeCard temp = list[i];
+            list[i] = list[randomIndex];
+            list[randomIndex] = temp;
+        }
     }
 }

@@ -9,6 +9,8 @@ public class Player : MonoBehaviour, IDamageable
     [Header("")]
     public Image fillImage;
     public SpriteRenderer CharacterImg;
+    public GameObject healthBar_Block;
+    public TextMeshPro blockValueText;
     public TextMeshProUGUI healthText;
     public TextMeshProUGUI nameText;
     [Header("Stats")]
@@ -56,6 +58,7 @@ public class Player : MonoBehaviour, IDamageable
         block = 0;
         currentEnergy = maxEnergy;
         UpdateHealthBar();
+        UpdateBlockIcon();
         UIManager.Instance.UpdatePlayerEnergyText();
     }
 
@@ -64,6 +67,7 @@ public class Player : MonoBehaviour, IDamageable
         currentEnergy = maxEnergy;
         block = 0;
         UIManager.Instance.UpdatePlayerEnergyText();
+        UpdateBlockIcon();
     }
 
     public void TakeDamage(int damage, int count = 1)
@@ -82,6 +86,7 @@ public class Player : MonoBehaviour, IDamageable
                     damage -= block;
                     block = 0;
                 }
+                UpdateBlockIcon();
             }
 
             if (damage > 0)
@@ -95,6 +100,7 @@ public class Player : MonoBehaviour, IDamageable
     public void TakeDirectDamage(int damage, int count = 1)
     {
         CurrentHp -= damage;
+        UpdateHealthBar();
     }
 
     public void AddBlock(int amount, int count = 1)
@@ -102,6 +108,19 @@ public class Player : MonoBehaviour, IDamageable
         for (int i = 0; i < count; i++)
         {
             block += amount;
+            UpdateBlockIcon();
+        }
+    }
+    private void UpdateBlockIcon()
+    {
+        if (block > 0)
+        {
+            healthBar_Block.SetActive(true);
+            blockValueText.text = block.ToString();
+        }
+        else
+        {
+            healthBar_Block.SetActive(false);
         }
     }
 

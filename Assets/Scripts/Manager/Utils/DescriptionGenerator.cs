@@ -11,10 +11,25 @@ public static class DescriptionGenerator
 
         foreach (CardEffect effect in card.OriginData.cardEffects)
         {
+            int originalValue;
+            int calcValue;
             switch (effect.GetEffectType())
-            {
+            {          
                 case CardEffectType.Damage:
-                    replacements["{Damage}"] = CardCalculator.FinalDamageCalculate(card, effect, target).ToString();
+                    originalValue = effect.value;
+                    calcValue = CardCalculator.FinalDamageCalculate(card, effect, target);
+                    if (originalValue < calcValue)
+                    {
+                        replacements["{Damage}"] = "<color=green>" + calcValue.ToString() + "</color>";
+                    }
+                    else if (originalValue > calcValue)
+                    {
+                        replacements["{Damage}"] = "<color=red>" + calcValue.ToString() + "</color>";
+                    }
+                    else
+                    {
+                        replacements["{Damage}"] = calcValue.ToString();
+                    }
                     if (effect.executeCount > 1) replacements["{Count}"] = CardCalculator.GetAttackCount(card, effect).ToString();
                     break;
                 case CardEffectType.Block:
@@ -40,7 +55,20 @@ public static class DescriptionGenerator
                     replacements["{DiscardValue}"] = (effect.value + (card.UpgradeCount * effect.upgradeCountBonus)).ToString();
                     break;
                 case CardEffectType.Damage_Use_AllCost:
-                    replacements["{Damage}"] = CardCalculator.FinalDamageCalculate(card, effect, target).ToString();
+                    originalValue = effect.value;
+                    calcValue = CardCalculator.FinalDamageCalculate(card, effect, target);
+                    if (originalValue < calcValue)
+                    {
+                        replacements["{Damage}"] = "<color=green>" + calcValue.ToString() + "</color>";
+                    }
+                    else if (originalValue > calcValue)
+                    {
+                        replacements["{Damage}"] = "<color=red>" + calcValue.ToString() + "</color>";
+                    }
+                    else
+                    {
+                        replacements["{Damage}"] = calcValue.ToString();
+                    }
                     replacements["X"] = Player.Instance.currentEnergy.ToString();
                     break;
                 case CardEffectType.Block_Use_AllCost:

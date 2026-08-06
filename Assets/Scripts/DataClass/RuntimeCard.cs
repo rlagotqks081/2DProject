@@ -48,7 +48,7 @@ public class RuntimeCard   // 게임 플레이중 동적 생성되는 원본(Car
         return baseCount + (effect.upgradeCountBonus * UpgradeCount);
     }
 
-    // 강화시 / 전투중 일시적인 코스트 변동을 반영한 최종 코스트 계산 - @@나중에 보완할 필요가 있어보임@@
+    // 강화시 전투중 일시적인 코스트 변동을 반영한 최종 코스트 계산 - @@나중에 보완할 필요가 있어보임@@
     public int GetCalculatedCost()
     {
         int finalCost = OriginData.cost - (OriginData.upgradeCostBonus * UpgradeCount);

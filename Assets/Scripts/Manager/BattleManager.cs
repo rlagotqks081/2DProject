@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using FantasyBattlegroundsPixelArtOriginal;
+using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Unity.VisualScripting;
@@ -32,7 +33,7 @@ public class BattleManager : MonoBehaviour
         }
     }
 
-    private void OnEnable()
+    private void Start()
     {
         if (BattleFlowManager.Instance != null)
         {
@@ -40,8 +41,9 @@ public class BattleManager : MonoBehaviour
         }
     }
 
-    private void HandleGameOver(GameOverType result)
+    public void HandleGameOver(GameOverType result)
     {
+        BuffManager.Instance.ClearTargetBuffs(Player.Instance.gameObject);
         activeMonsters.Clear();
         turnCount = 0;
     }
@@ -198,7 +200,7 @@ public class BattleManager : MonoBehaviour
     }
 
 
-    // 만들다가 말았음(최신화 해야함)
+
     public IEnumerator StartMonsterTurn()
     {
         GameObject playerObj = Player.Instance.gameObject;
@@ -225,7 +227,8 @@ public class BattleManager : MonoBehaviour
                         break;
 
                     case MonsterActionType.Defend:
-                        monster.AddBlock(monsterEffect.value);
+                        int monsterBlock = UtilManager.CalculateFinalBlock(monsterEffect.value,monster.gameObject);
+                        monster.AddBlock(monsterBlock);
                         break;
 
                     case MonsterActionType.Buff:

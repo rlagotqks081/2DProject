@@ -28,16 +28,16 @@ public static class UtilManager
         return Mathf.Max(0, finalDamage);
     }
 
-    public static int CalculateFinalBlock(int baseBlock, GameObject playerObj)
+    public static int CalculateFinalBlock(int baseBlock, GameObject targetObj)
     {
         int finalBlock = baseBlock;
 
-        BuffSystem playerBuff = playerObj.GetComponent<BuffSystem>();  
-        if(playerBuff != null )
+        BuffSystem targetBuff = targetObj.GetComponent<BuffSystem>();  
+        if(targetBuff != null )
         {
-            finalBlock += playerBuff.GetBuffValue(BuffType.Dexterity);
+            finalBlock += targetBuff.GetBuffValue(BuffType.Dexterity);
             
-            if(playerBuff.HasBuff(BuffType.Frail))
+            if(targetBuff.HasBuff(BuffType.Frail))
             {
                 finalBlock = Mathf.FloorToInt(finalBlock * 0.75f);
             }

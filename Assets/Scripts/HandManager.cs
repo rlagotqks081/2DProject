@@ -130,7 +130,7 @@ public class HandManager : MonoBehaviour
     /// <summary>
     /// 손에서 버려지는 카드의 CardUI를 받아서 해당 오브젝트를 disactive하고 재정렬 하는 함수
     /// </summary>
-    public IEnumerator RemoveCardFromHand(CardUI cardUI) // 버려지는 애니메이션 추가해야함
+    public IEnumerator RemoveCardFromHand(CardUI cardUI) // 버려지는 애니메이션 추가해야함  + 추가하긴했는데 뭔가 마음에안듬;
     {
         GameObject cardObj = cardUI.gameObject;
         if (handCardUIs.Contains(cardObj))
@@ -141,7 +141,6 @@ public class HandManager : MonoBehaviour
             .SetEase(Ease.InBack)
             .WaitForCompletion();
 
-            // 4. 애니메이션이 끝난 후 비활성화
             cardObj.SetActive(false);
 
         }

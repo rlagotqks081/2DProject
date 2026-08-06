@@ -75,7 +75,7 @@ public class MapDisplayer : MonoBehaviour
             }
         }
 
-        // 4. 선 생성 및 배치
+        // 선 생성 및 배치
         foreach (MapLayer layer in mapLayers)
         {
             foreach (MapNode node in layer.nodes)

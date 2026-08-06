@@ -1,6 +1,9 @@
 ﻿using System.Collections;
 using UnityEngine;
 
+// 카드애니매이션도 이렇게 wrapper만들어서 큐로 카드효과와 함께 관리하도록 수정하기
+// 이게 되야 히트애니메이션도 편하게 넣고 할거같음.
+
 public interface ICardEffect
 {
     IEnumerator Execute();

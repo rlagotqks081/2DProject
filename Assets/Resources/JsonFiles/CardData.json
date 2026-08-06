@@ -70,7 +70,7 @@
         {
           "effectType": "ApplyBuff",
           "triggerType": "OnPlay",
-          "value": 2,
+          "value": 10,
           "executeCount": 1,
           "upgradeBonus": 1,
           "upgradeCountBonus": 0,
@@ -116,7 +116,7 @@
         {
           "effectType": "DrawCard",
           "triggerType": "OnPlay",
-          "value": 1,
+          "value": 2,
           "executeCount": 1,
           "upgradeBonus": 1,
           "upgradeCountBonus": 0,

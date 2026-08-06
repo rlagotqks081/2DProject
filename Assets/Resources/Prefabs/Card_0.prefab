@@ -537,8 +537,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uC801\uC5D0\uAC8C \uD53C\uD574\uB97C 1 \uC785\uD788\uACE0 \uBC29\uC5B4\uB3C4\uB97C
-    1 \uC5BB\uC2B5\uB2C8\uB2E4"
+  m_text: "\uC801\uC5D0\uAC8C \uD53C\uD574\uB97C <color=red>1</color> \uC785\uD788\uACE0
+    \uBC29\uC5B4\uB3C4\uB97C 1 \uC5BB\uC2B5\uB2C8\uB2E4"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 4a1c43efb1a6f3b439d96b2582be788e, type: 2}
   m_sharedMaterial: {fileID: -8129372217006243226, guid: 4a1c43efb1a6f3b439d96b2582be788e, type: 2}

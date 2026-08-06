@@ -31,3 +31,7 @@ MonoBehaviour:
       value: 5
       buffType: 1
       executeCount: 0
+    - effectType: 2
+      value: 5
+      buffType: 6
+      executeCount: 0
